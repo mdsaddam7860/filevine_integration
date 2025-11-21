@@ -159,9 +159,75 @@ async function createProjectInFilevine(contact, token) {
   }
 }
 
+async function getIntakeByProjectID(projectID = "992365950", token) {
+  try {
+    if (!token) throw new Error("Missing Filevine token");
+    if (!projectID) throw new Error("Missing projectID");
+
+    const axiosFV = AxiosFilevineAuth(token);
+
+    const response = await axiosFV.get(
+      `/fv-app/v2/Projects/${projectID}/Forms/Intake`
+    );
+
+    return response.data;
+  } catch (error) {
+    logger.error("Error in getIntakeByProjectID:", error);
+    return {};
+  }
+}
+// async function updateIntakeUnderProject(projectID, token, data = {}) {
+//   try {
+//     if (!token) throw new Error("Missing Filevine token");
+//     if (!projectID) throw new Error("Missing ProjectID");
+
+//     const body = {
+//       isThisABurgAndBrockCase: data.isThisABurgAndBrockCase ?? "Yes",
+//       dateOfInterview: data.dateOfInterview ?? "2025-11-19",
+//       howDidYouHearAboutUs: data.howDidYouHearAboutUs ?? "Unknown",
+//       language: data.language ?? "English",
+//     };
+
+//     const axiosFV = AxiosFilevineAuth(token);
+
+//     const res = await axiosFV.patch(
+//       `/fv-app/v2/Projects/${projectID}/forms/intake`, // FIXED
+//       body
+//     );
+
+//     return res.data;
+//   } catch (error) {
+//     logger.error("Error in updateIntakeUnderProject:", error);
+//     return null;
+//   }
+// }
+
+async function updateIntakeUnderProject(projectID, token, data = {}) {
+  try {
+    if (!token) throw new Error("Missing Filevine token");
+    if (!projectID) throw new Error("Missing ProjectID");
+    if (!data.intake) throw new Error("Missing intake data in payload");
+
+    const axiosFV = AxiosFilevineAuth(token);
+
+    // PATCH expects the intake object
+    const res = await axiosFV.patch(
+      `/fv-app/v2/Projects/${projectID}/forms/intake`,
+      data.intake
+    );
+
+    return res.data;
+  } catch (error) {
+    logger.error("Error in updateIntakeUnderProject:", error);
+    return null;
+  }
+}
+
 export {
   getTokenFromFilevine,
   searchContactbyIDInFilevine,
   createContactInFilevine,
   createProjectInFilevine,
+  getIntakeByProjectID,
+  updateIntakeUnderProject,
 };

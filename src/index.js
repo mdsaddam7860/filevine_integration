@@ -10,12 +10,16 @@ import {
   searchContactbyIDInFilevine,
   createContactInFilevine,
   createProjectInFilevine,
+  updateIntakeUnderProject,
+  getIntakeByProjectID,
 } from "./services/filevine.service.js";
 import { hubspotToFilevine } from "./controllers/hubspotToFilevine.controller.js";
 import {
   getContactFromHubspot,
   updateContactInHubspot,
 } from "./services/hubspot.service.js";
+
+import { mapHubspotToFilevine } from "./utils/helperFunction.js";
 
 export {
   logger,
@@ -30,6 +34,9 @@ export {
   createContactInFilevine,
   updateContactInHubspot,
   createProjectInFilevine,
+  updateIntakeUnderProject,
+  getIntakeByProjectID,
+  mapHubspotToFilevine,
 };
 
 /* Workflow

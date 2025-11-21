@@ -10,6 +10,9 @@ import {
   createContactInFilevine,
   updateContactInHubspot,
   createProjectInFilevine,
+  getIntakeByProjectID,
+  updateIntakeUnderProject,
+  mapHubspotToFilevine,
 } from "../index.js";
 
 // async function hubspotToFilevine() {
@@ -87,19 +90,32 @@ async function hubspotToFilevine() {
           }
         }
 
-        // create project contact in filevine
+        // Create project contact in Filevine
         const project = await createProjectInFilevine(contact, token);
-        // logger.info(`project: ${JSON.stringify(project, null, 2)}`);
+
+        // Map HubSpot contact/deal to Filevine payload
+        const filevinePayload = mapHubspotToFilevine(contact);
+
+        // Update intake under project (only once)
+        const updatedIntake = await updateIntakeUnderProject(
+          project.projectId.native,
+          token,
+          filevinePayload
+        );
+
+        logger.info(
+          `Updated Intake: ${JSON.stringify(updatedIntake, null, 2)}`
+        );
       } catch (error) {
         logger.error("Error in hubspotToFilevine", error);
-        break;
+        continue; // continue with next contact
       }
     }
 
-    // search contact in filevne
+    // todo : remove before production
     // const res = await searchContactbyIDInFilevine("996817830", token);
-
     // logger.info(`res: ${res}`);
+    // todo : remove before production
   } catch (error) {
     logger.error("Error in hubspotToFilevine", error);
     return;
