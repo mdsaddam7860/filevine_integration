@@ -4,33 +4,54 @@ import fs from "fs";
 const { combine, timestamp, label, prettyPrint, printf, colorize, json } =
   format;
 
+const logDir = path.resolve("logs");
+
+// Create logs folder if it doesn't exist
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 const loggerFormat = printf(({ level, message, label, timestamp }) => {
   return `${timestamp} ${level} : ${message}`;
   // return `${timestamp} ${level} [${label}] : ${message}`;
 });
-const developmentLogger = function () {
-  const logDir = path.join(process.cwd(), "logs");
-  if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
+// Production logger
+const productionLogger = createLogger({
+  level: "info",
+  format: combine(
+    colorize(),
+    timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
+    loggerFormat
+  ),
+  defaultMeta: { service: "filevine Integration" },
+  transports: [
+    // Console logs for info and above
+    new transports.Console({ level: "info" }),
+    // File logs for persistence
+    new transports.File({
+      filename: path.join(logDir, "production.log"),
+      level: "info",
+      format: combine(timestamp(), json()),
+    }),
+    new transports.File({
+      filename: path.join(logDir, "error.log"),
+      level: "error",
+      format: combine(timestamp(), json()),
+    }),
+  ],
+});
 
+// Production logger
+const developmentLogger = () => {
   return createLogger({
-    level: "info",
-    format: combine(
-      colorize(),
-      timestamp({ format: "DD-MM-YYYY hh:mm:ss A" }),
-      prettyPrint(),
-      json(),
-      loggerFormat
-    ),
-    // format: combine(label({ label: "filevine Integration" }), timestamp(), loggerFormat),
-    defaultMeta: { service: "filevine Integration" },
+    level: "info", // minimum level to log
+    format: combine(timestamp({ format: "DD-MM-YYYY HH:mm:ss" }), loggerFormat),
+    defaultMeta: { service: "filevine-integration" },
     transports: [
-      new transports.Console({
-        level: "error",
-      }),
-      new transports.File({
-        filename: path.join(logDir, "development.log"),
-      }),
-      // new transports.File({ filename: "logs/combined.log" }),
+      // Console logs for info+ (includes info, warn, error)
+      new transports.Console({ level: "info" }),
+
+      // File logs for info+ (all info and above)
+      new transports.File({ filename: path.join(logDir, "production.log") }),
     ],
   });
 };
@@ -49,15 +70,15 @@ if (!logger) {
 
 export { logger };
 
-const productionLogger = function () {
-  return createLogger({
-    level: "info",
-    format: combine(
-      colorize(),
-      timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
-      loggerFormat
-    ),
-    defaultMeta: { service: "filevine Integration" },
-    transports: [new transports.Console({ level: "error" })],
-  });
-};
+// const productionLogger = function () {
+//   return createLogger({
+//     level: "info",
+//     format: combine(
+//       colorize(),
+//       timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
+//       loggerFormat
+//     ),
+//     defaultMeta: { service: "filevine Integration" },
+//     transports: [new transports.Console({ level: "error" })],
+//   });
+// };

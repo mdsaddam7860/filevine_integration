@@ -17,6 +17,8 @@ import { hubspotToFilevine } from "./controllers/hubspotToFilevine.controller.js
 import {
   getContactFromHubspot,
   updateContactInHubspot,
+  getHubspotContact,
+  fetchHubspotDeal,
 } from "./services/hubspot.service.js";
 
 import { mapHubspotToFilevine } from "./utils/helperFunction.js";
@@ -37,6 +39,8 @@ export {
   updateIntakeUnderProject,
   getIntakeByProjectID,
   mapHubspotToFilevine,
+  getHubspotContact,
+  fetchHubspotDeal,
 };
 
 /* Workflow

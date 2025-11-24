@@ -181,12 +181,12 @@ async function getIntakeByProjectID(projectID = "992365950", token) {
 //     if (!token) throw new Error("Missing Filevine token");
 //     if (!projectID) throw new Error("Missing ProjectID");
 
-//     const body = {
-//       isThisABurgAndBrockCase: data.isThisABurgAndBrockCase ?? "Yes",
-//       dateOfInterview: data.dateOfInterview ?? "2025-11-19",
-//       howDidYouHearAboutUs: data.howDidYouHearAboutUs ?? "Unknown",
-//       language: data.language ?? "English",
-//     };
+// const body = {
+//   isThisABurgAndBrockCase: data.isThisABurgAndBrockCase ?? "Yes",
+//   dateOfInterview: data.dateOfInterview ?? "2025-11-19",
+//   howDidYouHearAboutUs: data.howDidYouHearAboutUs ?? "Unknown",
+//   language: data.language ?? "English",
+// };
 
 //     const axiosFV = AxiosFilevineAuth(token);
 
@@ -195,30 +195,101 @@ async function getIntakeByProjectID(projectID = "992365950", token) {
 //       body
 //     );
 
+//     logger.info(
+//       `Intake updated under project ${projectID}: ${JSON.stringify(res.data)}`
+//     );
+
 //     return res.data;
 //   } catch (error) {
 //     logger.error("Error in updateIntakeUnderProject:", error);
+//     logger.error("Error in updateIntakeUnderProject:", error.response?.data);
+//     logger.error("Error in updateIntakeUnderProject:", error.message);
 //     return null;
 //   }
 // }
 
-async function updateIntakeUnderProject(projectID, token, data = {}) {
+// async function updateIntakeUnderProject(projectID, token, filevinePayload) {
+//   try {
+//     // if (!token) throw new Error("Missing Filevine token");
+//     // if (!projectID) throw new Error("Missing ProjectID");
+//     // if (!data.intake) throw new Error("Missing intake data in payload");
+
+//     if (!token || !filevinePayload || !projectID) {
+//       logger.info(
+//         "Missing token or filevinePayload or projectID in updateIntakeUnderProject"
+//       );
+//       return null;
+//     }
+
+//     const axiosFV = AxiosFilevineAuth(token);
+
+//     // PATCH expects the intake object
+//     const res = await axiosFV.patch(
+//       `/fv-app/v2/Projects/${projectID}/forms/intake`, // FIXED
+//       filevinePayload
+//     );
+
+//     return res.data;
+//   } catch (error) {
+//     logger.error("Error in updateIntakeUnderProject:", error);
+//     logger.error("Error in updateIntakeUnderProject:", error.response?.data);
+//     logger.error("Error in updateIntakeUnderProject:", error.message);
+
+//     return null;
+//   }
+// }
+
+// Utility to remove empty values
+function cleanProps(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(
+      ([_, value]) => value !== "" && value !== null && value !== undefined
+    )
+  );
+}
+
+async function updateIntakeUnderProject(projectID, token, filevinePayload) {
   try {
-    if (!token) throw new Error("Missing Filevine token");
-    if (!projectID) throw new Error("Missing ProjectID");
-    if (!data.intake) throw new Error("Missing intake data in payload");
+    if (!token || !filevinePayload || !projectID) {
+      logger.warn(
+        "Missing token, projectID, or payload in updateIntakeUnderProject",
+        {
+          projectID,
+          tokenProvided: !!token,
+          payloadKeys: filevinePayload ? Object.keys(filevinePayload) : null,
+        }
+      );
+      return null;
+    }
+
+    // Use the correct parameter name
+    // const cleanedPayload = cleanProps(filevinePayload);
+
+    // logger.info(`Body ${JSON.stringify(filevinePayload)}`);
 
     const axiosFV = AxiosFilevineAuth(token);
 
-    // PATCH expects the intake object
+    // PATCH expects only the intake object
     const res = await axiosFV.patch(
       `/fv-app/v2/Projects/${projectID}/forms/intake`,
-      data.intake
+      filevinePayload
     );
 
+    logger.info(`Intake updated successfully for project ${projectID}`);
     return res.data;
   } catch (error) {
-    logger.error("Error in updateIntakeUnderProject:", error);
+    // Graceful error logging
+    const status = error.response?.status || "Unknown status";
+    const data = error.response?.data || error.message || "No additional info";
+
+    logger.error("Error in updateIntakeUnderProject", {
+      projectID,
+      status,
+      data,
+      message: error.message,
+      stack: error.stack,
+    });
+
     return null;
   }
 }

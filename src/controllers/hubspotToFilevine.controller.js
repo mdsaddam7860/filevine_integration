@@ -111,11 +111,6 @@ async function hubspotToFilevine() {
         continue; // continue with next contact
       }
     }
-
-    // todo : remove before production
-    // const res = await searchContactbyIDInFilevine("996817830", token);
-    // logger.info(`res: ${res}`);
-    // todo : remove before production
   } catch (error) {
     logger.error("Error in hubspotToFilevine", error);
     return;
