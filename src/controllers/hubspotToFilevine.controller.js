@@ -93,6 +93,8 @@ async function hubspotToFilevine() {
         // Create project contact in Filevine
         const project = await createProjectInFilevine(contact, token);
 
+        // logger.info(`Project: ${JSON.stringify(project, null, 2)}`);
+
         // Map HubSpot contact/deal to Filevine payload
         const filevinePayload = mapHubspotToFilevine(contact);
 

@@ -21,39 +21,34 @@ try {
     //   hubspotToFilevine();
     // }
 
-    {
-      // TODO : remove this in production
+    // TODO : remove this in production
+    // fetch contacts and deals from HubSpot
+    const contact = await getHubspotContact("334230687418");
+    const deal = await fetchHubspotDeal("228252098235");
+    // logger.info(`contact: ${JSON.stringify(contact)}`);
+    // logger.info(`deal: ${JSON.stringify(deal)}`);
+    // throw new Error("stop");
+    const token = await getTokenFromFilevine(); // Get Token  from filevine
+    // Map HubSpot contact/deal to Filevine payload
 
-      // fetch contacts and deals from HubSpot
-      const contact = await getHubspotContact();
-      const deal = await fetchHubspotDeal();
+    const filevinePayload = mapHubspotToFilevine(contact, deal);
+    logger.info(`filevinePayload: ${JSON.stringify(filevinePayload)}`);
 
-      const token = await getTokenFromFilevine(); // Get Token  from filevine
+    // Create project contact in Filevine
+    const project = await createProjectInFilevine(contact, token);
+    // logger.info(`project: ${JSON.stringify(project)}`);
+    // console.log(`filevinePayload:`, filevinePayload);
 
-      // Create project contact in Filevine
-      // const project = await createProjectInFilevine(contact, token);
+    // Update intake under project (only once)
+    // project.projectId.native,
+    const updatedIntake = await updateIntakeUnderProject(
+      project.projectId.native,
+      token,
+      filevinePayload
+    );
+    logger.info(`updatedIntake: ${JSON.stringify(updatedIntake)}`);
+    // TODO : remove this in production
 
-      // logger.info(`project: ${JSON.stringify(project)}`);
-
-      // Map HubSpot contact/deal to Filevine payload
-      const filevinePayload = mapHubspotToFilevine(contact, deal);
-
-      // console.log(`filevinePayload:`, filevinePayload);
-      // throw new Error("stop");
-
-      // logger.info(`filevinePayload: ${JSON.stringify(filevinePayload)}`);
-
-      // Update intake under project (only once)
-      // project.projectId.native,
-      const updatedIntake = await updateIntakeUnderProject(
-        "992367690",
-        token,
-        filevinePayload
-      );
-
-      // logger.info(`updatedIntake: ${JSON.stringify(updatedIntake)}`);
-      // TODO : remove this in production
-    }
     logger.info(`Server is running on port ${PORT}`);
     // console.info(`Server is running on port ${PORT}`);
   });

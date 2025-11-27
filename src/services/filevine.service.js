@@ -263,7 +263,7 @@ async function updateIntakeUnderProject(projectID, token, filevinePayload) {
     }
 
     // Use the correct parameter name
-    // const cleanedPayload = cleanProps(filevinePayload);
+    const cleanedPayload = cleanProps(filevinePayload);
 
     // logger.info(`Body ${JSON.stringify(filevinePayload)}`);
 
@@ -272,7 +272,7 @@ async function updateIntakeUnderProject(projectID, token, filevinePayload) {
     // PATCH expects only the intake object
     const res = await axiosFV.patch(
       `/fv-app/v2/Projects/${projectID}/forms/intake`,
-      filevinePayload
+      cleanedPayload
     );
 
     logger.info(`Intake updated successfully for project ${projectID}`);

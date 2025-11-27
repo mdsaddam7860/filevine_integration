@@ -60,6 +60,9 @@ async function getContactFromHubspot({
         const contacts = response.data?.results || [];
         allContacts.push(...contacts);
 
+        // TODO remove after testing and add this to getContactFromHubspot
+        return allContacts; // TODO remove after
+
         after = response.data?.paging?.next?.after; // next cursor
         break; // exit retry loop if successful
       } catch (error) {
@@ -287,7 +290,7 @@ async function fetchHubspotDeal(
       "❌ HubSpot Deal Fetch Error:",
       err.response?.data || err.message
     );
-    throw err;
+    return {};
   }
 }
 
@@ -442,7 +445,7 @@ async function getHubspotContact(contactId = "326388247263") {
       "Error fetching HubSpot contact:",
       error.response?.data || error
     );
-    throw error;
+    return {};
   }
 }
 
