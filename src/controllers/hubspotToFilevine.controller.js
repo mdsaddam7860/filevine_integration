@@ -13,6 +13,9 @@ import {
   getIntakeByProjectID,
   updateIntakeUnderProject,
   mapHubspotToFilevine,
+  updateHubSpotContactProjectId,
+  getDealIdsForContact,
+  fetchHubspotDeal,
 } from "../index.js";
 
 // async function hubspotToFilevine() {
@@ -52,17 +55,18 @@ async function hubspotToFilevine() {
         let filevineContact = null;
         let hubspotContact = null;
 
-        let sourcid = contact.properties?.sourceid || null;
+        let sourceId = contact.properties?.sourceid || null;
+        let project = contact.properties?.projectsourceid || null;
 
-        if (sourcid) {
+        if (sourceId) {
           // search filevine contact based on sourceid in hubspot contact
-          filevineContact = await searchContactbyIDInFilevine(sourcid, token);
+          filevineContact = await searchContactbyIDInFilevine(sourceId, token);
           if (filevineContact) {
-            logger.info(`existing Conact in filevine : ${sourcid}`);
+            logger.info(`existing Conact in filevine : ${sourceId}`);
           }
           // logger.info(`search contact in filevine: ${filevineContact}`);
         } else {
-          // post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
+          // TODO : post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
           filevineContact = await createContactInFilevine(contact, token);
           // logger.info(
           //   `Created Contact in Filevine: ${JSON.stringify(
@@ -86,17 +90,44 @@ async function hubspotToFilevine() {
               contact,
               filevinePersonID
             );
-            logger.info(`Updated Contact in Hubspot: ${hubspotContact}`);
+            logger.info(
+              `Updated sourceId in Hubspot Contact: ${hubspotContact}`
+            );
           }
         }
 
-        // Create project contact in Filevine
-        const project = await createProjectInFilevine(contact, token);
+        // TODO : We are already storing filevineId as sourceId in hubspot contact,
+        // Created new Field for projectId in hubspot called projectsourceid
+
+        if (!project) {
+          // Create project contact in Filevine
+          project = await createProjectInFilevine(contact, token);
+
+          // Update projectsourceid in contact
+          if (project.projectId.native) {
+            const update_contact_sourceId = await updateHubSpotContactProjectId(
+              contact.id,
+              project.projectId.native
+            );
+            logger.info(
+              `projectId in Hubspot Contact updated: ${JSON.stringify(
+                update_contact_sourceId
+              )}`
+            );
+          }
+        }
+
+        // Fetch deals from , first get deal id from  contact and then get deal
+
+        const dealId = await getDealIdsForContact(contact.id);
+        logger.info(`deals: ${JSON.stringify(deals)}`);
+
+        const getDeal = await fetchHubspotDeal(dealId);
 
         // logger.info(`Project: ${JSON.stringify(project, null, 2)}`);
 
         // Map HubSpot contact/deal to Filevine payload
-        const filevinePayload = mapHubspotToFilevine(contact);
+        const filevinePayload = mapHubspotToFilevine(contact, getDeal);
 
         // Update intake under project (only once)
         const updatedIntake = await updateIntakeUnderProject(

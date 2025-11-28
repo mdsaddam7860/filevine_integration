@@ -19,6 +19,8 @@ import {
   updateContactInHubspot,
   getHubspotContact,
   fetchHubspotDeal,
+  updateHubSpotContactProjectId,
+  getDealIdsForContact,
 } from "./services/hubspot.service.js";
 
 import { mapHubspotToFilevine } from "./utils/helperFunction.js";
@@ -41,6 +43,8 @@ export {
   mapHubspotToFilevine,
   getHubspotContact,
   fetchHubspotDeal,
+  updateHubSpotContactProjectId,
+  getDealIdsForContact,
 };
 
 /* Workflow

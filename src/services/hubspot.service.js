@@ -133,11 +133,11 @@ async function updateContactInHubspot(contact, id) {
  * @param {string} token - HubSpot Private App Token
  * @param {string[]} properties - List of properties to request
  */
-async function fetchHubspotDeal(
-  dealId = "223721384690",
-  token,
-  properties = []
-) {
+async function fetchHubspotDeal(dealId, properties = []) {
+  if (!dealId) {
+    logger.warn("❌ Error in fetchHubspotDeal: dealId is missing");
+    return {};
+  }
   try {
     // If no properties passed, use your full list
     const defaultProperties = [
@@ -286,7 +286,7 @@ async function fetchHubspotDeal(
 
     return res.data;
   } catch (err) {
-    console.error(
+    logger.error(
       "❌ HubSpot Deal Fetch Error:",
       err.response?.data || err.message
     );
@@ -441,11 +441,64 @@ async function getHubspotContact(contactId = "326388247263") {
 
     return response.data;
   } catch (error) {
-    console.error(
+    logger.error(
       "Error fetching HubSpot contact:",
       error.response?.data || error
     );
     return {};
+  }
+}
+
+async function updateHubSpotContactProjectId(contactId, sourceId) {
+  try {
+    if (!contactId || !sourceId) {
+      logger.error("Missing contactId, sourceId");
+      return {};
+    }
+
+    const payload = {
+      properties: {
+        projectsourceid: sourceId,
+      },
+    };
+
+    const response = await hubspotAxios.patch(`contacts/${contactId}`, payload);
+
+    logger.info(
+      "Contact updated in updateHubSpotContactProjectId:",
+      response.data
+    );
+    return response.data.results[0] || {};
+  } catch (error) {
+    logger.error(
+      "Error updating HubSpot contact in updateHubSpotContactProjectId:",
+      error
+    );
+    return {};
+  }
+}
+
+async function getDealIdsForContact(contactId) {
+  try {
+    const response = await hubspotAxios.get(
+      `contacts/${contactId}/associations/deals`,
+      {}
+    );
+
+    // Extract deal IDs
+    // const dealId = response.data.results.map((item) => item.toObjectId);
+    const dealId = response.data.results[0].id;
+
+    // logger.info(
+    //   `Deal ID:, ${JSON.stringify(response.data.results[0], null, 2)}`
+    // );
+
+    // logger.info(`Deal ID:, ${dealId}`);
+
+    return dealId || "";
+  } catch (error) {
+    logger.error("Error fetching deal IDs:", error.response?.data || error);
+    return "";
   }
 }
 
@@ -454,4 +507,6 @@ export {
   updateContactInHubspot,
   getHubspotContact,
   fetchHubspotDeal,
+  updateHubSpotContactProjectId,
+  getDealIdsForContact,
 };
