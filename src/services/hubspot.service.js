@@ -46,7 +46,13 @@ async function getContactFromHubspot({
       try {
         // filterGroups: filters.length ? [{ filters }] : [],
         const requestBody = {
-          properties: ["email", "firstname", "lastname", "sourceid"],
+          properties: [
+            "email",
+            "firstname",
+            "lastname",
+            "sourceid",
+            "projectsourceid",
+          ],
           limit,
           after,
         };
@@ -425,6 +431,7 @@ async function getHubspotContact(contactId = "326388247263") {
     "intake_coordinator",
     "primary_contact",
     "intake_status",
+    "projectsourceid",
   ];
 
   const url = `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`;
@@ -449,16 +456,16 @@ async function getHubspotContact(contactId = "326388247263") {
   }
 }
 
-async function updateHubSpotContactProjectId(contactId, sourceId) {
+async function updateHubSpotContactProjectId(contactId, projectsourceId) {
   try {
-    if (!contactId || !sourceId) {
+    if (!contactId || !projectsourceId) {
       logger.error("Missing contactId, sourceId");
       return {};
     }
 
     const payload = {
       properties: {
-        projectsourceid: sourceId,
+        projectsourceid: projectsourceId,
       },
     };
 
@@ -468,7 +475,7 @@ async function updateHubSpotContactProjectId(contactId, sourceId) {
       "Contact updated in updateHubSpotContactProjectId:",
       response.data
     );
-    return response.data.results[0] || {};
+    return response.data || {};
   } catch (error) {
     logger.error(
       "Error updating HubSpot contact in updateHubSpotContactProjectId:",

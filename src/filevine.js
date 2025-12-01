@@ -26,31 +26,31 @@ try {
     // TODO : remove this in production
 
     // fetch contacts and deals from HubSpot
-    const contact = await getHubspotContact("334161184473");
-    // logger.info(`contact: ${JSON.stringify(contact)}`);
+    const contact = await getHubspotContact("326388247263");
+    logger.info(`✅ contact: ${JSON.stringify(contact)}`);
     const token = await getTokenFromFilevine(); // Get Token  from filevine
 
     // const filevinePayload = mapHubspotToFilevine(contact, deal);
     // logger.info(`filevinePayload: ${JSON.stringify(filevinePayload)}`);
 
-    let project = "992369623" || null;
+    let projectId = contact.properties?.projectsourceid || null;
     // let project = contact.properties?.projectsourceid || null;
 
-    if (!project) {
+    if (!projectId) {
       // Create project contact in Filevine
-      project = await createProjectInFilevine(contact, token);
-      logger.info(`project: ${JSON.stringify(project.projectId.native)}`);
-      // console.log(`filevinePayload:`, filevinePayload);
+      const project = await createProjectInFilevine(contact, token);
+      projectId = project.projectId.native;
+      logger.info(`projectId: ${JSON.stringify(project.projectId.native)}`);
 
-      // const update_contact_sourceId = await updateHubSpotContactProjectId(
-      //   contact.id,
-      //   project.projectId.native
-      // );
-      // logger.info(
-      //   `projectId in Hubspot Contact updated: ${JSON.stringify(
-      //     update_contact_sourceId
-      //   )}`
-      // );
+      const update_contact_sourceId = await updateHubSpotContactProjectId(
+        contact.id,
+        project.projectId.native
+      );
+      logger.info(
+        `projectId in Hubspot Contact updated: ${JSON.stringify(
+          update_contact_sourceId
+        )}`
+      );
     }
 
     const dealId = await getDealIdsForContact(contact.id);
@@ -58,7 +58,7 @@ try {
     const getDeal = await fetchHubspotDeal(dealId);
 
     // logger.info(`dealId: ${dealId}`);
-    // logger.info(`getDeal: ${JSON.stringify(getDeal)}`); // Tested and working fine
+    logger.info(`✅ getDeal: ${JSON.stringify(getDeal)}`); // Tested and working fine
 
     // throw new Error("stop");
 
@@ -66,11 +66,12 @@ try {
 
     // Map HubSpot contact/deal to Filevine payload
     const filevinePayload = mapHubspotToFilevine(contact, getDeal);
+    logger.info(`➡️ filevinePayload: ${JSON.stringify(filevinePayload)}`);
 
     // Update intake under project (only once)
     // project.projectId.native,
     const updatedIntake = await updateIntakeUnderProject(
-      project,
+      projectId,
       token,
       filevinePayload
     );
