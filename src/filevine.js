@@ -26,7 +26,7 @@ try {
     // TODO : remove this in production
 
     // fetch contacts and deals from HubSpot
-    const contact = await getHubspotContact("326388247263");
+    const contact = await getHubspotContact("334161184473");
     logger.info(`✅ contact: ${JSON.stringify(contact)}`);
     const token = await getTokenFromFilevine(); // Get Token  from filevine
 
