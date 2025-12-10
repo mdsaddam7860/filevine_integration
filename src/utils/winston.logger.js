@@ -51,7 +51,7 @@ const developmentLogger = () => {
       new transports.Console({ level: "info" }),
 
       // File logs for info+ (all info and above)
-      new transports.File({ filename: path.join(logDir, "production.log") }),
+      new transports.File({ filename: path.join(logDir, "development.log") }),
     ],
   });
 };

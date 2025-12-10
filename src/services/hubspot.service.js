@@ -147,6 +147,9 @@ async function fetchHubspotDeal(dealId, properties = []) {
   try {
     // If no properties passed, use your full list
     const defaultProperties = [
+      "firstname",
+      "lastname",
+      "email",
       "client_name",
       "client_dob",
       "client_phone",
@@ -300,9 +303,12 @@ async function fetchHubspotDeal(dealId, properties = []) {
   }
 }
 
-async function getHubspotContact(contactId = "326388247263") {
+async function getHubspotContact(contactId) {
   // All properties extracted from your cURL call
   const properties = [
+    "firstname",
+    "lastname",
+    "email",
     "client_name",
     "client_dob",
     "client_phone",

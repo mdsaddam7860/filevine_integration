@@ -107,7 +107,17 @@ async function createContactInFilevine(contact, token) {
     const body = {
       firstName: contactDetails.firstname,
       lastName: contactDetails.lastname,
-      email: contactDetails.email,
+      Emails: [
+        {
+          EmailId: {
+            Native: -2147483648, // use -2147483648 for new emails as per Filevine docs
+            Partner: null,
+          },
+          Links: {}, // can be empty if no custom links
+          Address: contactDetails.email, // your actual email string
+          Label: "Primary", // label can be Primary, Work, Home, etc.
+        },
+      ],
     };
 
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
@@ -127,13 +137,14 @@ async function createContactInFilevine(contact, token) {
   }
 }
 
-async function createProjectInFilevine(contact, token) {
+async function createProjectInFilevine(contact, FVContactId, token) {
   try {
     if (!contact || !token) return null;
 
     const contactDetails = contact.properties;
+
     const firstName = contactDetails.firstname || "";
-    const lastName = contactDetails.lastname || " ";
+    const lastName = contactDetails.lastname || "";
     const email = contactDetails.email || " ";
 
     let data = JSON.stringify({
@@ -141,10 +152,12 @@ async function createProjectInFilevine(contact, token) {
         Native: 990000083,
       },
       ClientId: {
-        Native: 996817622,
+        Native: FVContactId,
       },
-      ProjectName: `${firstName} ${lastName} ${email}`,
+      ProjectName: `${firstName} ${lastName}`, // TODO : Udated need aproval
+      // ProjectEmailAddress: email,
     });
+    // ProjectName: `${firstName} ${lastName} ${email}`, // TODO :  Confirm after Updating
 
     const axiosFilevine = AxiosFilevineAuth(token);
 
