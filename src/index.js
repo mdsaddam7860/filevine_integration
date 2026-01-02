@@ -12,6 +12,8 @@ import {
   createProjectInFilevine,
   updateIntakeUnderProject,
   getIntakeByProjectID,
+  searchContactByNameInFV,
+  createContactInFilevinUsingName,
 } from "./services/filevine.service.js";
 import { hubspotToFilevine } from "./controllers/hubspotToFilevine.controller.js";
 import {
@@ -23,13 +25,14 @@ import {
   getDealIdsForContact,
 } from "./services/hubspot.service.js";
 
-import { mapHubspotToFilevine } from "./utils/helperFunction.js";
+import { mapHubspotToFilevine, splitFullName } from "./utils/helperFunction.js";
 
 export {
   logger,
   app,
   AxiosFilevine,
   hubspotAxios,
+  splitFullName,
   AxiosFilevineAuth,
   getTokenFromFilevine,
   hubspotToFilevine,
@@ -45,6 +48,8 @@ export {
   fetchHubspotDeal,
   updateHubSpotContactProjectId,
   getDealIdsForContact,
+  searchContactByNameInFV,
+  createContactInFilevinUsingName,
 };
 
 /* Workflow

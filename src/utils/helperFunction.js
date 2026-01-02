@@ -17,30 +17,94 @@ const safe = (v) => {
   const val = cleanValue(v);
   return val === "" || val === undefined || val === null ? null : val;
 };
+
+function splitFullName(fullName = "") {
+  const parts = fullName.trim().split(/\s+/);
+
+  if (parts.length === 1) {
+    return {
+      firstName: parts[0],
+      lastName: null,
+    };
+  }
+
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(" "),
+  };
+}
+
 const cleanValue = (v) => {
   if (v === null || v === undefined || v === "") return undefined;
   return v;
   // return typeof v === "string" ? v.trim() : v;
 };
 
+// const mapIntakeStatus = (value) => {
+//   if (!value || typeof value !== "string") return null;
+
+//   const lower = value.toLowerCase().trim();
+
+//   const map = {
+//     "approved sign up": "Approved Sign Up*",
+//     "approved signup": "Approved Sign Up*",
+//     "no contact": "No Contact/Lost Intake.",
+//     "no contact/lost intake": "No Contact/Lost Intake.",
+//     "lost intake": "No Contact/Lost Intake.",
+//     pending: "Pending.",
+//     "referred out": "Referred Out*",
+//     turndown: "Turndown.",
+//   };
+
+//   return map[lower] ?? null; // return Pending if not found
+// };
+
 const mapIntakeStatus = (value) => {
   if (!value || typeof value !== "string") return null;
 
-  const lower = value.toLowerCase().trim();
+  const normalized = value
+    .toLowerCase()
+    .replace(/\s+/g, " ") // collapse multiple spaces
+    .replace(/\s*\/\s*/g, "/") // normalize slashes
+    .trim();
 
   const map = {
-    "approved sign up": "Approved Sign Up*",
-    "approved signup": "Approved Sign Up*",
-    "no contact": "No Contact/Lost Intake.",
-    "no contact/lost intake": "No Contact/Lost Intake.",
-    "lost intake": "No Contact/Lost Intake.",
-    pending: "Pending.",
-    "referred out": "Referred Out*",
-    turndown: "Turndown.",
+    "new lead": "New Lead",
+    lead: "New Lead",
+    signup: "New Lead",
+    "approved sign up": "New Lead",
+    "approved signup": "New Lead",
+
+    contacted: "Contacted",
+    "initial contact": "Contacted",
+
+    "follow up 1": "Follow up 1",
+    "follow up 2": "Follow up 2",
+    "follow up 3": "Follow up 3",
+
+    "retainer sent": "Retainer Sent",
+
+    "retainer follow up": "Retainer Follow up",
+
+    "retainer signed": "Retainer signed/ File # assigned",
+    "retainer signed/file#assigned": "Retainer signed/ File # assigned",
+    "retainer signed/file # assigned": "Retainer signed/ File # assigned",
+    "file assigned": "Retainer signed/ File # assigned",
+
+    lost: "Lost",
+    "no contact": "Lost",
+    "lost intake": "Lost",
+
+    rejected: "Rejected",
+    turndown: "Rejected",
+
+    referred: "Referred *",
+    "referred out": "Referred *",
   };
 
-  return map[lower] ?? null; // return Pending if not found
+  return map[normalized] ?? "Unknown";
 };
+
 const mapMaritalStatus = (value) => {
   if (!value || typeof value !== "string") return null;
 
@@ -74,6 +138,34 @@ const mapAccidentType = (value) => {
 
   return map[lower] ?? null; // or "Pending"
 };
+const mapTypeOfAccident = (value) => {
+  if (!value || typeof value !== "string") return null;
+
+  // Normalize input
+  const lower = value
+    .toLowerCase()
+    .trim()
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ");
+
+  const map = {
+    // direct
+    // unknown: "Unknown",
+    "lane change": "Lane Change",
+    "left turn": "Left Turn",
+    "multi car collision": "Multi Car Collision",
+    pedestrian: "Pedestrian*",
+    "pedestrian*": "Pedestrian*",
+    "rear end": "Rear End*",
+    "rear end*": "Rear End*",
+    "red light": "Red Light",
+    "right turn": "Right Turn",
+    "stop sign": "Stop Sign",
+    other: "Other",
+  };
+
+  return map[lower] ?? null; // or "Pending"
+};
 
 const mapWhichService = (value) => {
   if (!value || typeof value !== "string") return null;
@@ -85,7 +177,20 @@ const mapWhichService = (value) => {
     lyft: "Lyft",
   };
 
-  return map[lower] ?? null; // return Pending if not found
+  return map[lower] ?? null; // return null if not found
+};
+
+const mapdriverOrPassenger = (value) => {
+  if (!value || typeof value !== "string") return null;
+
+  const lower = value.toLowerCase().trim();
+
+  const map = {
+    driver: "Driver",
+    passenger: "Passenger",
+  };
+
+  return map[lower] ?? null; // return null if not found
 };
 const mapHowDidYouHearAboutUs = (value) => {
   if (!value || typeof value !== "string") return null;
@@ -138,9 +243,186 @@ const mapHowDidYouHearAboutUs = (value) => {
 
 // Test mapWhichService mapping if it is working
 
-function mapHubspotToFilevine(contact, deal = {}) {
+let fvContact = {
+  id: 995366203,
+  // contactNumber: "995476793",
+  // orgID: 6811,
+  // firstName: "2",
+  // middleName: null,
+  // lastName: "Team",
+  // fullname: "2 Team",
+  // isSingleName: false,
+  // fromCompany: "State Farm Ins Company",
+  // primaryLanguage: null,
+  // orgMetaVersionID: 0,
+  // jobTitle: null,
+  // department: null,
+  // prefix: null,
+  // suffix: null,
+  // fullnameExtended: "2 Team",
+  // nickname: null,
+  // initials: "2T",
+  // initialsFirstLast: "2T",
+  // personTypes: [
+  //   {
+  //     id: 990000108,
+  //     name: "Adjuster",
+  //     badgeColorClass: null,
+  //     isDeprecated: false,
+  //     includeBirthdateField: false,
+  //     globalSourceGuid: "a628a714-9847-44b8-a0ab-0e38354eb883",
+  //   },
+  // ],
+  // tags: [],
+  // isArchived: false,
+  // createdDate: "2024-03-29T15:51:44Z",
+  // modifiedDate: "2024-03-29T15:51:44Z",
+  // phones: [
+  //   {
+  //     id: 997165033,
+  //     number: "(800) 321-9693 Ext: 1861",
+  //     extension: null,
+  //     rawNumber: "80032196931861",
+  //     isSmsable: false,
+  //     isFaxable: false,
+  //     label: "Work",
+  //     phoneLabel: {
+  //       isSmsable: false,
+  //       isFaxable: false,
+  //       id: 990000052,
+  //       name: "Work",
+  //       icon: "call",
+  //       isDeprecated: false,
+  //       globalSourceGuid: "780172ec-8ad4-4ecb-9e48-cd9e251ac42f",
+  //     },
+  //     notes: "",
+  //   },
+  //   {
+  //     id: 997165034,
+  //     number: "(800) 377-0989",
+  //     extension: null,
+  //     rawNumber: "8003770989",
+  //     isSmsable: false,
+  //     isFaxable: true,
+  //     label: "Fax",
+  //     phoneLabel: {
+  //       isSmsable: false,
+  //       isFaxable: true,
+  //       id: 990000051,
+  //       name: "Fax",
+  //       icon: "call",
+  //       isDeprecated: false,
+  //       globalSourceGuid: "5989c347-f236-4c32-b43c-3c1c62abe786",
+  //     },
+  //     notes: "",
+  //   },
+  // ],
+  // emails: [],
+  // addresses: [
+  //   {
+  //     id: 995438739,
+  //     line1: "P.O. Box 21659",
+  //     line2: null,
+  //     line3: null,
+  //     city: "Bakersfield",
+  //     state: "CA",
+  //     zip: "93390",
+  //     country: null,
+  //     label: "Work",
+  //     addressLabel: {
+  //       id: 990000022,
+  //       name: "Work",
+  //       icon: "mail_outline",
+  //       isDeprecated: false,
+  //       globalSourceGuid: "718c4239-8b78-42b1-b627-13bdda0062b8",
+  //     },
+  //     notes: null,
+  //     fullAddress: "P.O. Box 21659, Bakersfield, CA 93390",
+  //   },
+  // ],
+  // pictureUrl: "",
+  // pictureKey: "",
+  // birthDate: null,
+  // deathDate: null,
+  // isDeceased: false,
+  // ageInYears: null,
+  // uniqueID: "f3ce2ca7-0d77-44a3-b240-c9746547f965",
+  // abbreviatedName: null,
+  // ssn: null,
+  // notes: null,
+  // specialty: null,
+  // gender: null,
+  // language: null,
+  // maritalStatus: null,
+  // isTextingPermitted: null,
+  // remarket: null,
+  // driverLicenseNumber: null,
+  // isTypeClient: null,
+  // isTypeAdjuster: null,
+  // isTypeDefendant: false,
+  // isTypePlaintiff: false,
+  // isTypeAttorney: null,
+  // isTypeFirm: null,
+  // isTypeExpert: null,
+  // isTypeMedicalProvider: null,
+  // isTypeInvolvedParty: null,
+  // isTypeJudge: null,
+  // isTypeCourt: null,
+  // isTypeInsuranceCompany: null,
+  // salutation: null,
+  // barNumber: null,
+  // fiduciary: null,
+  // isMinor: null,
+  // searchNames: ["2", "team", "2 team"],
+};
+
+function mapHubspotToFilevine(
+  contact,
+  deal = {},
+  citationIssuedTo = null,
+  hospitalname = null,
+  ambulanceCompanyInformation = null,
+  nameOfProviderSAddPhone = null,
+  bodyShop = null,
+  staffMemberSendingPDLetter = null,
+  callercontactfile = null,
+  personperformingintake = null,
+  spouse = null,
+  defendantSVehicleRegistered = null,
+  defendant2DriverContactCar = null,
+  defendant2VehicleRegistered = null,
+  defendantDriverContactCard = null,
+  clientSVehicleRegisteredOw = null,
+  attorneySNameAndContactP = null,
+  whoIsTheWorkerSCompensati = null,
+  passengerContactInformation = null,
+  witnessEs_1 = null
+) {
   if (!contact || !contact.properties)
     throw new Error("Invalid HubSpot contact");
+
+  const citationId = citationIssuedTo?.personId.native || null;
+  const hospitalId = hospitalname?.personId.native || null;
+  const ambulanceId = ambulanceCompanyInformation?.personId?.native || null;
+  const nameOfProvidersId = nameOfProviderSAddPhone?.personId?.native || null;
+  const bodyShopId = bodyShop?.personId?.native || null;
+  const staffId = staffMemberSendingPDLetter?.personId?.native || null;
+  const callerId = callercontactfile?.personId?.native || null;
+  const intakeCoordinatorId = personperformingintake?.personId?.native || null;
+  const spouseId = spouse?.personId?.native || null;
+  const defendantId = defendantSVehicleRegistered?.personId?.native || null;
+  const defendant2DriverId =
+    defendant2DriverContactCar?.personId?.native || null;
+  const defendant2Id = defendant2VehicleRegistered?.personId?.native || null;
+  const defendantDriverId =
+    defendantDriverContactCard?.personId?.native || null;
+  const clientVehicleRegisteredOwnerId =
+    clientSVehicleRegisteredOw?.personId?.native || null;
+  const attorneyId = attorneySNameAndContactP?.personId?.native || null;
+  const workerCompensationId =
+    whoIsTheWorkerSCompensati?.personId?.native || null;
+  const passengerId = passengerContactInformation?.personId?.native || null;
+  const witnessId = witnessEs_1?.personId?.native || null;
 
   const c = contact.properties;
   const d = deal.properties || {};
@@ -175,6 +457,17 @@ function mapHubspotToFilevine(contact, deal = {}) {
     // Add mapAccidentType mapping
     if (dealKey === "case_type" || contactKey === "case_type") {
       return mapAccidentType(value);
+    }
+    // Add mapTypeOfAccident mapping
+    if (dealKey === "type_of_accident" || contactKey === "type_of_accident") {
+      return mapTypeOfAccident(value);
+    }
+    // Add mapdriverOrPassenger mapping
+    if (
+      dealKey === "were_you_driver_or_passenger" ||
+      contactKey === "were_you_driver_or_passenger"
+    ) {
+      return mapdriverOrPassenger(value);
     }
 
     // mapHowDidYouHearAboutUs mapping
@@ -224,7 +517,7 @@ function mapHubspotToFilevine(contact, deal = {}) {
     isThisABurgAndBrockCase: getBoolean(
       "is_this_a_burg_and_brock_case",
       "is_this_a_burg_and_brock_case"
-    ), // TODO: Update after response
+    ),
     dateOfInterview: get("date_of_interview", "date_of_interview"),
     language: get("language", "language"),
 
@@ -252,40 +545,44 @@ function mapHubspotToFilevine(contact, deal = {}) {
     wasTheCarYouWereInAtFau: getBoolean(
       "was_the_car_you_were_in_at_fault",
       "was_the_car_you_were_in_at_fault"
-    ), // TODO Changed to boolean
+    ),
     doYouAndTheDriverShareTh: getBoolean(
       "do_you_and_the_driver_share_the_same_last_name",
       "do_you_and_the_driver_share_the_same_last_name"
-    ), // TODO Changed to boolean
+    ),
     areYouCoveredUnderTheSame: getBoolean(
       "are_you_covered_under_the_same_policy",
       "are_you_covered_under_the_same_policy"
-    ), // TODO Changed to boolean
+    ),
     areYouAndTheDriverRelated: getBoolean(
       "are_you_and_the_driver_related",
       "are_you_and_the_driver_related"
-    ), // TODO Changed to boolean
+    ),
     passenger: getBoolean(
       "were_there_other_passengers_in_the_car",
       "were_there_other_passengers_in_the_car"
-    ), // TODO Changed to boolean
+    ),
     howManyPassengers: get("how_many_passengers", "how_many_passengers"),
     wasTheOtherPartyUnderThe: getBoolean(
       "was_the_other_party_under_the_influence_dui",
       "was_the_other_party_under_the_influence_dui"
     ),
-    whichService: get("which_service", "which_service"),
     isThereACommercialPolicy: getBoolean(
       "is_there_a_commercial_policy",
       "is_there_a_commercial_policy"
     ),
-    typeOfAccident: get("type_of_accident", "type_of_accident"),
+
     isThereAWitnessSupporting: getBoolean(
       "witness_supporting_you_were_not_at_fault",
       "witness_supporting_you_were_not_at_fault"
     ),
-    witnesses: getBoolean("witnesses", "witnesses"), // TODO Change from witnessEs_1 to witnesses, ask first
-    // witnessEs_1: getBoolean("witnesses", "witnesses"),
+    // witnesses: getBoolean("witnesses", "witnesses"), // TODO Change from witnessEs_1 to witnesses, ask first
+
+    witnessEs_1: [
+      {
+        id: witnessId,
+      },
+    ], // Conatct card
     // rearEndPedestrianNotes: getBoolean(
     //   "rear_endpedestrian_notes",
     //   "rear_endpedestrian_notes"
@@ -312,7 +609,7 @@ function mapHubspotToFilevine(contact, deal = {}) {
       "direction_of_defendants_travel",
       "direction_of_defendants_travel"
     ),
-    laneOfDefendant: get("lane_of_defendant", "lane_of_defendant"),
+    laneOfDefendant: get("lane__of_defendant", "lane__of_defendant"),
     defendantIncidentNotes: get(
       "defendant_incident_notes",
       "defendant_incident_notes"
@@ -323,10 +620,10 @@ function mapHubspotToFilevine(contact, deal = {}) {
       "did_the_other_party_admit_fault",
       "did_the_other_party_admit_fault"
     ),
-    haveYouDiscussedTheAcciden: get(
+    haveYouDiscussedTheAcciden: getBoolean(
       "discussed_the_accident_with_your_insurance",
       "discussed_the_accident_with_your_insurance"
-    ),
+    ), // TODO Boolean value accepts only true or false
     explainWhatWasDiscussed: get(
       "explain_what_was_discussed",
       "explain_what_was_discussed"
@@ -355,7 +652,6 @@ function mapHubspotToFilevine(contact, deal = {}) {
     injured: getBoolean("were_you_injured", "were_you_injured"),
     deathcase: getBoolean("death_case", "death_case"),
     maritalstatus: get("marital_status", "marital_status"),
-    spouse: get("spouse", "spouse"),
     deathspouseinfo: get(
       "name_age_and_health_of_spouse",
       "name_age_and_health_of_spouse"
@@ -397,7 +693,11 @@ function mapHubspotToFilevine(contact, deal = {}) {
       "other_treatments_you_have_received",
       "other_treatments_you_have_received"
     ),
-    nameOfProviderSAddPhone: get("name_of_providers", "name_of_providers"),
+    nameOfProviderSAddPhone: [
+      {
+        id: nameOfProvidersId,
+      },
+    ],
     pastInjuriesAccidents: getBoolean(
       "past_injuriesaccidents",
       "past_injuriesaccidents"
@@ -418,9 +718,9 @@ function mapHubspotToFilevine(contact, deal = {}) {
       "do_you_have_rental_coverage"
     ),
     howManyDays: get("how_many_days_rental", "how_many_days_rental"),
-    clientVehicleMake: get("client_vehicle_make", "client_vehicle_make"),
-    clientVehicleModel: get("client_vehicle_model", "client_vehicle_model"),
-    clientVehicleYear: get("client_vehicle_year", "client_vehicle_year"),
+    // clientVehicleMake: get("client_vehicle_make", "client_vehicle_make"),
+    // clientVehicleModel: get("client_vehicle_model", "client_vehicle_model"),
+    // clientVehicleYear: get("client_vehicle_year", "client_vehicle_year"),
     clientVehicleLicensePlateNumber: get(
       "client_vehicle_license_plate_number",
       "client_vehicle_license_plate_number"
@@ -431,9 +731,148 @@ function mapHubspotToFilevine(contact, deal = {}) {
     ),
     intakestatus: get("intake_status", "intake_status"),
     dateofintake: get("date_of_intake", "date_of_intake"),
-  };
+    // TODO: Needs to be checked, typeOfAccident is dropdown
+    typeOfAccident: get("type_of_accident", "type_of_accident"),
+    // typeOfAccident: "Bicycle Accident",
+    whichService: get("which_service", "which_service"), // Dropdown
+    wasThisAnUberLyftAccident: getBoolean(
+      "was_this_an_uberlyft_accident",
+      "was_this_an_uberlyft_accident"
+    ), // TODO Change from was_this_an_uberlyft_accident to _accident according to recent mapping
+
+    // New Intake Mapping
+
+    hospitalName: [
+      {
+        id: hospitalId,
+      },
+    ],
+    ambulanceCompanyInformation: [
+      {
+        id: ambulanceId,
+      },
+    ],
+    // ambulanceCompanyInformation: get(
+    //   "ambulance_company_information",
+    //   "ambulance_company_information"
+    // ), // Contact Card // TODO : Fields are not populated fix later
+    // witnessEs_1: get("witnesses", "witnesses"),
+    passengerContactInformation: [
+      {
+        id: passengerId,
+      },
+    ],
+
+    callercontactfile: {
+      id: callerId,
+    }, // Contact Card
+    personperformingintake: {
+      id: intakeCoordinatorId,
+    }, // Contact card
+
+    defendant2VehicleRegistered: {
+      id: defendant2Id,
+    }, // Contact Card
+
+    defendant2DriverContactCar: {
+      id: defendant2DriverId,
+    }, // contact card
+
+    defendantSVehicleRegistered: {
+      id: defendantId,
+    }, // Contact Card
+
+    defendantDriverContactCard: {
+      id: defendantDriverId,
+    }, // Conact Card
+    // defendantDriverContactCard: get("defendant_driver", "defendant_driver"), // Conact Card
+    clientSVehicleRegisteredOw: {
+      id: clientVehicleRegisteredOwnerId,
+    }, // Conact Card
+
+    staffMemberSendingPDLetter: {
+      id: staffId,
+    }, // contact card
+
+    spouse: {
+      id: spouseId,
+    }, // Contact Card
+    bodyShop: {
+      id: bodyShopId,
+    },
+
+    citationIssuedToWhom: {
+      id: citationId,
+    },
+
+    // Both throwing 400 errors in Filevine API
+    whoIsTheWorkerSCompensati: {
+      id: workerCompensationId,
+    }, // Contact Card
+
+    attorneySNameAndContactP: {
+      id: attorneyId,
+    }, // Contact Card
+
+    dateofloss: get("date_of_incident", "date_of_incident"),
+    internalFileNumber: get("internal_file_number", "internal_file_number"), // throwing 404 error, //TODO field exist but in (ENTER IN CASE SUMMARY), need to be discussed this is inside case summary
+    // policeDepartment: {
+    //   id: policeDepartmentId,
+    // },
+
+    additionalVehiclesInvolved: getBoolean(
+      "additional_defendant_vehicle_involved",
+      "additional_defendant_vehicle_involved"
+    ),
+
+    clientVehicleMake: get("client_vehicle__make", "client_vehicle__make"),
+    clientVehicleModel: get("client_vehicle__model", "client_vehicle__model"),
+    clientVehicleYear: get("client_vehicle__year", "client_vehicle__year"),
+    defendantVehicleMake: get(
+      "defendant_vehicle__make",
+      "defendant_vehicle__make"
+    ),
+    defendantVehicleModel: get(
+      "defendant_vehicle__model",
+      "defendant_vehicle__model"
+    ),
+    defendantVehicleYear: get(
+      "defendant_vehicle__year",
+      "defendant_vehicle__year"
+    ),
+    defendant2VehicleMake: get(
+      "defendant_vehicle__make",
+      "defendant_vehicle__make"
+    ),
+    defendant2VehicleModel: get(
+      "defendant_vehicle__model",
+      "defendant_vehicle__model"
+    ),
+    defendant2VehicleYear: get(
+      "defendant_vehicle__year",
+      "defendant_vehicle__year"
+    ),
+    defendant2VehicleLicense: get(
+      "defendant_2_vehicle__license_plate",
+      "defendant_2_vehicle__license_plate"
+    ),
+    defendant2VehicleRepairEst_1: get(
+      "defendant_2_vehicle_repair_estimate",
+      "defendant_2_vehicle_repair_estimate"
+    ),
+
+    defendantVehicleLicensePl: get(
+      "defendant_vehicle__license_plate_number",
+      "defendant_vehicle__license_plate_number"
+    ),
+    defendantVehicleRepairEstim: get(
+      "defendant_vehicle_repair_estimate",
+      "defendant_vehicle_repair_estimate"
+    ),
+  }; // from defendant2VehicleRepairEst_1 to defendant2VehicleRepairEst
 
   return intake;
 }
 
-export { mapHubspotToFilevine };
+export { mapHubspotToFilevine, splitFullName };
+("");

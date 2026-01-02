@@ -1,4 +1,9 @@
-import { AxiosFilevine, logger, AxiosFilevineAuth } from "../index.js";
+import {
+  AxiosFilevine,
+  logger,
+  AxiosFilevineAuth,
+  splitFullName,
+} from "../index.js";
 import qs from "qs";
 import util from "util";
 
@@ -8,7 +13,7 @@ async function getTokenFromFilevine() {
       client_id: process.env.FILEVINE_CLIENT_ID,
       client_secret: process.env.FILEVINE_CLIENT_SECRET,
       grant_type: "personal_access_token",
-      token: "4882F429933DF86728A2837A9332F4CFCA555A45C862E8821015C44E68F60CC3",
+      token: process.env.FILEVINE_TOKEN,
       scope:
         "fv.api.gateway.access tenant filevine.v2.api.* openid email fv.auth.tenant.read",
     });
@@ -71,6 +76,55 @@ async function searchContactbyIDInFilevine(id, token) {
   }
 }
 
+async function searchContactByNameInFV(name, token) {
+  try {
+    // -----------------------------------
+    // Validate inputs FIRST
+    // -----------------------------------
+    if (!token || !name || typeof name !== "string") {
+      logger.warn("Name and token are required for searching contact");
+      return null;
+    }
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      logger.warn("Empty name provided for Filevine contact search");
+      return null;
+    }
+
+    const { firstName, lastName } = splitFullName(trimmedName);
+
+    // -----------------------------------
+    // Filevine requires BOTH names
+    // -----------------------------------
+    if (!firstName || !lastName) {
+      logger.warn(`Invalid full name for Filevine search: "${trimmedName}"`);
+      return null;
+    }
+
+    const axiosFilevine = AxiosFilevineAuth(token);
+
+    const res = await axiosFilevine.get(`/fv-app/v2/Contacts`, {
+      params: {
+        firstName,
+        lastName,
+      },
+    });
+
+    if (!res?.data?.count) {
+      return null;
+    }
+
+    return res.data.items?.[0] ?? null;
+  } catch (error) {
+    logger.error(
+      "Error searching contact by name in Filevine:",
+      error?.response?.data || error.message
+    );
+    return null;
+  }
+}
+
 // async function searchContactbyIDInFilevine(id, token) {
 //   try {
 //     if (!id || !token) return null;
@@ -96,11 +150,22 @@ async function searchContactbyIDInFilevine(id, token) {
 //   }
 // }
 
-async function createContactInFilevine(contact, token) {
+async function createContactInFilevine(contact, token, deal) {
   try {
     if (!contact || !token) {
       return null;
     }
+
+    const c = contact.properties;
+    const d = deal.properties || {};
+
+    const get = (dealKey, contactKey) => {
+      const value = d[dealKey] ?? c[contactKey] ?? null;
+
+      if (value === "" || value === undefined) return null;
+
+      return value;
+    };
 
     const contactDetails = contact.properties;
 
@@ -118,6 +183,18 @@ async function createContactInFilevine(contact, token) {
           Label: "Primary", // label can be Primary, Work, Home, etc.
         },
       ],
+      // whoIsTheWorkerSCompensati: get(
+      //   "who_is_the_workers_compensation_attorney",
+      //   "who_is_the_workers_compensation_attorney"
+      // ),
+      // citationIssuedToWhom: get(
+      //   "citation_issued_to_whom",
+      //   "citation_issued_to_whom"
+      // ),
+      // attorneySNameAndContactP: get(
+      //   "attorneys_name_and_contact",
+      //   "attorneys_name_and_contact"
+      // ),
     };
 
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
@@ -133,6 +210,59 @@ async function createContactInFilevine(contact, token) {
     // const getContact = await AxiosFilevine.get("fv-app/v2/Contacts");
   } catch (error) {
     logger.error("Error in searching contact by ID in Filevine:", error);
+    return null;
+  }
+}
+async function createContactInFilevinUsingName(name, token) {
+  try {
+    // -----------------------------------
+    // Validate inputs FIRST
+    // -----------------------------------
+    if (!token || !name || typeof name !== "string") {
+      logger.warn("Name and token are required for creating contact");
+      return null;
+    }
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      logger.warn("Empty name provided for Filevine contact creation");
+      return null;
+    }
+
+    const { firstName, lastName } = splitFullName(trimmedName);
+
+    // -----------------------------------
+    // Filevine requires full name
+    // -----------------------------------
+    if (!firstName || !lastName) {
+      logger.warn(
+        `Cannot create Filevine contact without full name: "${trimmedName}"`
+      );
+      return null;
+    }
+
+    const body = {
+      firstName,
+      lastName,
+    };
+
+    const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
+
+    if (!res?.data) {
+      logger.warn("Filevine contact creation succeeded but returned no data");
+      return null;
+    }
+
+    logger.info(
+      `Filevine contact created: ${res.data?.personId?.native ?? "unknown id"}`
+    );
+
+    return res.data;
+  } catch (error) {
+    logger.error(
+      "Error creating contact in Filevine:",
+      error?.response?.data || error.message
+    );
     return null;
   }
 }
@@ -307,6 +437,30 @@ async function updateIntakeUnderProject(projectID, token, filevinePayload) {
   }
 }
 
+import axios from "axios";
+
+async function findFilevineContact({ token, firstName, lastName, payload }) {
+  try {
+    const url = `fv-app/v2/Contacts?firstName=${encodeURIComponent(
+      firstName
+    )}&lastName=${encodeURIComponent(lastName)}`;
+
+    const axiosFV = AxiosFilevineAuth(token);
+
+    const response = await axiosFV.get(url, {
+      // data: payload, // body sent even in GET request to match curl
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "❌ Error fetching contact:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+}
+
 export {
   getTokenFromFilevine,
   searchContactbyIDInFilevine,
@@ -314,4 +468,7 @@ export {
   createProjectInFilevine,
   getIntakeByProjectID,
   updateIntakeUnderProject,
+  findFilevineContact,
+  searchContactByNameInFV,
+  createContactInFilevinUsingName,
 };
