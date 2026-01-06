@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import {
+  filevineExecutor,
   logger,
   app,
   hubspotToFilevine,
@@ -18,6 +19,8 @@ import {
   searchContactbyIDInFilevine,
   searchContactByNameInFV,
   createContactInFilevinUsingName,
+  filevineContactPayload,
+  filevineTokenManager,
 } from "./index.js";
 
 const PORT = process.env.PORT || 5000;
@@ -36,11 +39,13 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
 
     // TODO : remove this in production
 
+    const token = await filevineTokenManager.getToken();
+    logger.info(`token: ${token.slice(0, 10)}`);
+
     // fetch contacts and deals from HubSpot
     const contact = await getHubspotContact("334230687418");
     logger.info(`✅ contact: ${JSON.stringify(contact)}`);
 
-    const token = await getTokenFromFilevine(); // Get Token  from filevine
     const dealId = await getDealIdsForContact(contact.id);
 
     const getDeal = await fetchHubspotDeal(dealId);
@@ -64,19 +69,50 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
     let whoIsTheWorkerSCompensati = null;
     let passengerContactInformation = null;
     let witnessEs_1 = null;
+    // citationIssuedTo = await searchContactByNameInFV(
+    //   getDeal.properties?.citation_issued_to
+    // );
 
+    // if (!citationIssuedTo && getDeal.properties?.citation_issued_to) {
+    // Create payload
+    const payload = filevineContactPayload(
+      getDeal.properties?.citation_issued_to,
+      contact
+    );
+    // create contact in filevine
+
+    // await hubspotExecutor(
+    //   () => hubspotClient.crm.contacts.basicApi.update(contactId, payload),
+    //   { contactId }
+    // );
+    await filevineExecutor(
+      () => (citationIssuedTo = createContactInFilevinUsingName(payload)),
+      { payload }
+    );
+    citationIssuedTo = await createContactInFilevinUsingName(payload);
+    logger.info(
+      `citation_issued_to: ${JSON.stringify(citationIssuedTo, null, 2)}`
+    );
+    // }
+
+    logger.info(
+      `citation_issued_to: ${getDeal.properties?.citation_issued_to}`
+    );
+
+    /*
     if (getDeal) {
       citationIssuedTo = await searchContactByNameInFV(
-        getDeal.properties?.citation_issued_to,
-        token
+        getDeal.properties?.citation_issued_to
       );
 
       if (!citationIssuedTo && getDeal.properties?.citation_issued_to) {
-        // create contact in filevine
-        citationIssuedTo = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.citation_issued_to,
-          token
+          contact
         );
+        // create contact in filevine
+        citationIssuedTo = await createContactInFilevinUsingName(payload);
       }
 
       logger.info(
@@ -84,16 +120,18 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       );
 
       hospitalname = await searchContactByNameInFV(
-        getDeal.properties?.hospital_name,
-        token
+        getDeal.properties?.hospital_name
       );
 
       if (!hospitalname && getDeal.properties?.hospital_name) {
-        // create contact in filevine
-        hospitalname = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.hospital_name,
-          token
+          contact
         );
+
+        // create contact in filevine
+        hospitalname = await createContactInFilevinUsingName(payload);
       }
 
       logger.info(`hospital_name: ${getDeal.properties?.hospital_name}`);
@@ -101,30 +139,38 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let ambulanceCompanyInformation = null;
 
       ambulanceCompanyInformation = await searchContactByNameInFV(
-        getDeal.properties?.ambulance_type,
-        token
+        getDeal.properties?.ambulance_type
       );
 
       if (!ambulanceCompanyInformation && getDeal.properties?.ambulance_type) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.ambulance_type,
+          contact
+        );
+
         // create contact in filevine
         ambulanceCompanyInformation = await createContactInFilevinUsingName(
-          getDeal.properties?.ambulance_type,
-          token
+          payload
         );
       }
 
       logger.info(`ambulance_type: ${getDeal.properties?.ambulance_type}`);
 
       nameOfProviderSAddPhone = await searchContactByNameInFV(
-        getDeal.properties?.name_of_providers,
-        token
+        getDeal.properties?.name_of_providers
       );
 
       if (!nameOfProviderSAddPhone && getDeal.properties?.name_of_providers) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.name_of_providers,
+          contact
+        );
+
         // create contact in filevine
         nameOfProviderSAddPhone = await createContactInFilevinUsingName(
-          getDeal.properties?.name_of_providers,
-          token
+          payload
         );
       }
 
@@ -133,16 +179,18 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       );
 
       bodyShop = await searchContactByNameInFV(
-        getDeal.properties?.body_shop_type,
-        token
+        getDeal.properties?.body_shop_type
       );
 
       if (!bodyShop && getDeal.properties?.body_shop_type) {
-        // create contact in filevine
-        bodyShop = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.body_shop_type,
-          token
+          contact
         );
+
+        // create contact in filevine
+        bodyShop = await createContactInFilevinUsingName(payload);
       }
 
       logger.info(`body_shop_type: ${getDeal.properties?.body_shop_type}`);
@@ -150,15 +198,19 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let staffMemberSendingPDLetter = null;
 
       staffMemberSendingPDLetter = await searchContactByNameInFV(
-        getDeal.properties?.pd_letter_sent,
-        token
+        getDeal.properties?.pd_letter_sent
       );
 
       if (!staffMemberSendingPDLetter && getDeal.properties?.pd_letter_sent) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.pd_letter_sent,
+          contact
+        );
+
         // create contact in filevine
         staffMemberSendingPDLetter = await createContactInFilevinUsingName(
-          getDeal.properties?.pd_letter_sent,
-          token
+          payload
         );
       }
 
@@ -167,16 +219,18 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let callercontactfile = null;
 
       callercontactfile = await searchContactByNameInFV(
-        getDeal.properties?.primary_contact,
-        token
+        getDeal.properties?.primary_contact
       );
 
       if (!callercontactfile && getDeal.properties?.primary_contact) {
-        // create contact in filevine
-        callercontactfile = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.primary_contact,
-          token
+          contact
         );
+
+        // create contact in filevine
+        callercontactfile = await createContactInFilevinUsingName(payload);
       } // Expecting a phone Number
 
       logger.info(`primary_contact: ${getDeal.properties?.primary_contact}`);
@@ -184,16 +238,17 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let personperformingintake = null;
 
       personperformingintake = await searchContactByNameInFV(
-        getDeal.properties?.intake_coordinator,
-        token
+        getDeal.properties?.intake_coordinator
       );
 
       if (!personperformingintake && getDeal.properties?.intake_coordinator) {
-        // create contact in filevine
-        personperformingintake = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.intake_coordinator,
-          token
+          contact
         );
+        // create contact in filevine
+        personperformingintake = await createContactInFilevinUsingName(payload);
       }
 
       logger.info(
@@ -202,17 +257,17 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
 
       // let spouse = null;
 
-      spouse = await searchContactByNameInFV(
-        getDeal.properties?.spouse_name,
-        token
-      );
+      spouse = await searchContactByNameInFV(getDeal.properties?.spouse_name);
 
       if (!spouse && getDeal.properties?.spouse_name) {
-        // create contact in filevine
-        spouse = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.spouse_name,
-          token
+          contact
         );
+
+        // create contact in filevine
+        spouse = await createContactInFilevinUsingName(payload);
       }
 
       logger.info(`spouse_name: ${getDeal.properties?.spouse_name}`);
@@ -220,18 +275,21 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let defendantSVehicleRegistered = null;
 
       defendantSVehicleRegistered = await searchContactByNameInFV(
-        getDeal.properties?.registered_vehicle_owner,
-        token
+        getDeal.properties?.registered_vehicle_owner
       );
 
       if (
         !defendantSVehicleRegistered &&
         getDeal.properties?.registered_vehicle_owner
       ) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.registered_vehicle_owner,
+          contact
+        );
         // create contact in filevine
         defendantSVehicleRegistered = await createContactInFilevinUsingName(
-          getDeal.properties?.registered_vehicle_owner,
-          token
+          payload
         );
       }
 
@@ -242,18 +300,21 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let defendant2DriverContactCar = null;
 
       defendant2DriverContactCar = await searchContactByNameInFV(
-        getDeal.properties?.defendant_2_driver_contact_card,
-        token
+        getDeal.properties?.defendant_2_driver_contact_card
       );
 
       if (
         !defendant2DriverContactCar &&
         getDeal.properties?.defendant_2_driver_contact_card
       ) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.defendant_2_driver_contact_card,
+          contact
+        );
         // create contact in filevine
         defendant2DriverContactCar = await createContactInFilevinUsingName(
-          getDeal.properties?.defendant_2_driver_contact_card,
-          token
+          payload
         );
       }
 
@@ -264,18 +325,21 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let defendant2VehicleRegistered = null;
 
       defendant2VehicleRegistered = await searchContactByNameInFV(
-        getDeal.properties?.defendant_2_vehicle_registered_owner,
-        token
+        getDeal.properties?.defendant_2_vehicle_registered_owner
       );
 
       if (
         !defendant2VehicleRegistered &&
         getDeal.properties?.defendant_2_vehicle_registered_owner
       ) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.defendant_2_vehicle_registered_owner,
+          contact
+        );
         // create contact in filevine
         defendant2VehicleRegistered = await createContactInFilevinUsingName(
-          getDeal.properties?.defendant_2_vehicle_registered_owner,
-          token
+          payload
         );
       }
 
@@ -286,15 +350,18 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let defendantDriverContactCard = null;
 
       defendantDriverContactCard = await searchContactByNameInFV(
-        getDeal.properties?.defendant_driver,
-        token
+        getDeal.properties?.defendant_driver
       );
 
       if (!defendantDriverContactCard && getDeal.properties?.defendant_driver) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.defendant_driver,
+          contact
+        );
         // create contact in filevine
         defendantDriverContactCard = await createContactInFilevinUsingName(
-          getDeal.properties?.defendant_driver,
-          token
+          payload
         );
       }
 
@@ -303,37 +370,43 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let clientSVehicleRegisteredOw = null;
 
       clientSVehicleRegisteredOw = await searchContactByNameInFV(
-        getDeal.properties?.clients_vehicle_registered_owner,
-        token
+        getDeal.properties?.registered_vehicle_owner
       );
 
       if (
         !clientSVehicleRegisteredOw &&
-        getDeal.properties?.clients_vehicle_registered_owner
+        getDeal.properties?.registered_vehicle_owner
       ) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.registered_vehicle_owner,
+          contact
+        );
         // create contact in filevine
         clientSVehicleRegisteredOw = await createContactInFilevinUsingName(
-          getDeal.properties?.clients_vehicle_registered_owner,
-          token
+          payload
         );
       }
 
       logger.info(
-        `clients_vehicle_registered_owner: ${getDeal.properties?.clients_vehicle_registered_owner}`
+        `clients_vehicle_registered_owner: ${getDeal.properties?.registered_vehicle_owner}`
       );
 
       // let attorneySNameAndContactP = null;
 
       attorneySNameAndContactP = await searchContactByNameInFV(
-        getDeal.properties?.attorneys_name,
-        token
+        getDeal.properties?.attorneys_name
       );
 
       if (!attorneySNameAndContactP && getDeal.properties?.attorneys_name) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.attorneys_name,
+          contact
+        );
         // create contact in filevine
         attorneySNameAndContactP = await createContactInFilevinUsingName(
-          getDeal.properties?.attorneys_name,
-          token
+          payload
         );
       }
 
@@ -342,18 +415,21 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let whoIsTheWorkerSCompensati = null;
 
       whoIsTheWorkerSCompensati = await searchContactByNameInFV(
-        getDeal.properties?.workers_compensation_attorney,
-        token
+        getDeal.properties?.workers_compensation_attorney
       );
 
       if (
         !whoIsTheWorkerSCompensati &&
         getDeal.properties?.workers_compensation_attorney
       ) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.workers_compensation_attorney,
+          contact
+        );
         // create contact in filevine
         whoIsTheWorkerSCompensati = await createContactInFilevinUsingName(
-          getDeal.properties?.workers_compensation_attorney,
-          token
+          payload
         );
       }
 
@@ -362,18 +438,21 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       );
 
       passengerContactInformation = await searchContactByNameInFV(
-        getDeal.properties?.passenger_contact_phone_number,
-        token
+        getDeal.properties?.passenger_contact_phone_number
       );
 
       if (
         !passengerContactInformation &&
         getDeal.properties?.passenger_contact_phone_number
       ) {
+        // Create payload
+        const payload = filevineContactPayload(
+          getDeal.properties?.passenger_contact_phone_number,
+          contact
+        );
         // create contact in filevine
         passengerContactInformation = await createContactInFilevinUsingName(
-          getDeal.properties?.passenger_contact_phone_number,
-          token
+          payload
         );
       }
       logger.info(
@@ -383,16 +462,17 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // let witnessEs_1 = null;
 
       witnessEs_1 = await searchContactByNameInFV(
-        getDeal.properties?.witnesses,
-        token
+        getDeal.properties?.witnesses
       );
 
       if (!witnessEs_1 && getDeal.properties?.witnesses) {
-        // create contact in filevine
-        witnessEs_1 = await createContactInFilevinUsingName(
+        // Create payload
+        const payload = filevineContactPayload(
           getDeal.properties?.witnesses,
-          token
+          contact
         );
+        // create contact in filevine
+        witnessEs_1 = await createContactInFilevinUsingName(payload);
       }
       logger.info(`witnesses: ${getDeal.properties?.witnesses}`);
 
@@ -423,6 +503,7 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       //   )}`
       // );
     }
+    */
 
     // logger.info(`dealId: ${dealId}`);
     // logger.info(`✅ getDeal: ${JSON.stringify(getDeal)}`); // Tested and working fine
@@ -441,7 +522,7 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
 
     if (sourceId && projectId) {
       // search filevine contact based on sourceid in hubspot contact
-      filevineContact = await searchContactbyIDInFilevine(sourceId, token);
+      filevineContact = await searchContactbyIDInFilevine(sourceId);
       filevinePersonID = filevineContact?.personId?.native || null;
       if (filevineContact) {
         logger.info(`existing Conact in filevine : ${sourceId}`);
@@ -449,7 +530,7 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       // logger.info(`search contact in filevine: ${filevineContact}`);
     } else {
       // TODO : post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
-      filevineContact = await createContactInFilevine(contact, token, getDeal);
+      filevineContact = await createContactInFilevine(contact, getDeal);
       logger.info(
         `Created Contact in Filevine: ${JSON.stringify(
           filevineContact,
@@ -490,11 +571,7 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
 
     if (!projectId) {
       // Create project contact in Filevine
-      const project = await createProjectInFilevine(
-        contact,
-        filevinePersonID,
-        token
-      );
+      const project = await createProjectInFilevine(contact, filevinePersonID);
       projectId = project.projectId.native;
       logger.info(`project created: ${JSON.stringify(project)}`);
 
@@ -542,7 +619,6 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
     // project.projectId.native,
     const updatedIntake = await updateIntakeUnderProject(
       projectId,
-      token,
       filevinePayload
     );
     logger.info(`➡✅ updatedIntake: ${JSON.stringify(updatedIntake)}`);

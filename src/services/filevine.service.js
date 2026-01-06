@@ -3,6 +3,7 @@ import {
   logger,
   AxiosFilevineAuth,
   splitFullName,
+  filevineTokenManager,
 } from "../index.js";
 import qs from "qs";
 import util from "util";
@@ -43,8 +44,9 @@ async function getTokenFromFilevine() {
   }
 }
 
-async function searchContactbyIDInFilevine(id, token) {
+async function searchContactbyIDInFilevine(id) {
   try {
+    const token = await filevineTokenManager.getToken();
     if (!id || !token) {
       return null;
     }
@@ -76,8 +78,9 @@ async function searchContactbyIDInFilevine(id, token) {
   }
 }
 
-async function searchContactByNameInFV(name, token) {
+async function searchContactByNameInFV(name) {
   try {
+    const token = await filevineTokenManager.getToken();
     // -----------------------------------
     // Validate inputs FIRST
     // -----------------------------------
@@ -150,8 +153,9 @@ async function searchContactByNameInFV(name, token) {
 //   }
 // }
 
-async function createContactInFilevine(contact, token, deal) {
+async function createContactInFilevine(contact, deal) {
   try {
+    const token = await filevineTokenManager.getToken();
     if (!contact || !token) {
       return null;
     }
@@ -213,38 +217,40 @@ async function createContactInFilevine(contact, token, deal) {
     return null;
   }
 }
-async function createContactInFilevinUsingName(name, token) {
+async function createContactInFilevinUsingName(body) {
   try {
+    const token = await filevineTokenManager.getToken();
     // -----------------------------------
     // Validate inputs FIRST
     // -----------------------------------
-    if (!token || !name || typeof name !== "string") {
-      logger.warn("Name and token are required for creating contact");
+
+    if (!token || !body) {
+      logger.warn("Payload and token are required for creating contact");
       return null;
     }
 
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      logger.warn("Empty name provided for Filevine contact creation");
-      return null;
-    }
+    // const trimmedName = name.trim();
+    // if (!trimmedName) {
+    //   logger.warn("Empty name provided for Filevine contact creation");
+    //   return null;
+    // }
 
-    const { firstName, lastName } = splitFullName(trimmedName);
+    // const { firstName, lastName } = splitFullName(trimmedName);
 
-    // -----------------------------------
-    // Filevine requires full name
-    // -----------------------------------
-    if (!firstName || !lastName) {
-      logger.warn(
-        `Cannot create Filevine contact without full name: "${trimmedName}"`
-      );
-      return null;
-    }
+    // // -----------------------------------
+    // // Filevine requires full name
+    // // -----------------------------------
+    // if (!firstName || !lastName) {
+    //   logger.warn(
+    //     `Cannot create Filevine contact without full name: "${trimmedName}"`
+    //   );
+    //   return null;
+    // }
 
-    const body = {
-      firstName,
-      lastName,
-    };
+    // const body = {
+    //   firstName,
+    //   lastName,
+    // };
 
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
 
@@ -261,14 +267,15 @@ async function createContactInFilevinUsingName(name, token) {
   } catch (error) {
     logger.error(
       "Error creating contact in Filevine:",
-      error?.response?.data || error.message
+      error?.response?.data || error
     );
     return null;
   }
 }
 
-async function createProjectInFilevine(contact, FVContactId, token) {
+async function createProjectInFilevine(contact, FVContactId) {
   try {
+    const token = await filevineTokenManager.getToken();
     if (!contact || !token) return null;
 
     const contactDetails = contact.properties;
@@ -391,8 +398,10 @@ function cleanProps(obj) {
   );
 }
 
-async function updateIntakeUnderProject(projectID, token, filevinePayload) {
+async function updateIntakeUnderProject(projectID, filevinePayload) {
   try {
+    const token = await filevineTokenManager.getToken();
+
     if (!token || !filevinePayload || !projectID) {
       logger.warn(
         "Missing token, projectID, or payload in updateIntakeUnderProject",

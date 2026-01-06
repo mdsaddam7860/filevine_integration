@@ -25,9 +25,19 @@ import {
   getDealIdsForContact,
 } from "./services/hubspot.service.js";
 
-import { mapHubspotToFilevine, splitFullName } from "./utils/helperFunction.js";
+import {
+  mapHubspotToFilevine,
+  splitFullName,
+  filevineContactPayload,
+} from "./utils/helperFunction.js";
+
+import { filevineTokenManager } from "./services/auth/tokenManager.js";
+import { filevineExecutor } from "./utils/executor.js";
 
 export {
+  filevineExecutor,
+  filevineTokenManager,
+  filevineContactPayload,
   logger,
   app,
   AxiosFilevine,

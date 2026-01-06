@@ -446,7 +446,10 @@ function mapHubspotToFilevine(
       return mapIntakeStatus(value);
     }
     // intake_status mapping
-    if (dealKey === "which_service" || contactKey === "which_service") {
+    if (
+      dealKey === "which_service_uberlyft" ||
+      contactKey === "which_service_uberlyft"
+    ) {
       return mapWhichService(value);
     }
 
@@ -598,7 +601,7 @@ function mapHubspotToFilevine(
     ),
     incidentcity: get("city", "city"),
     incidentcounty: get("county", "county"),
-    state: get("state", "state"),
+    state: get("state", "state").toUpperCase(),
     trafficControls: getBoolean("traffic_controls", "traffic_controls"),
     streetClientOn: getBoolean("street_client_on", "street_client_on"),
     directionOfTravel: get("direction_of_travel", "direction_of_travel"),
@@ -734,7 +737,7 @@ function mapHubspotToFilevine(
     // TODO: Needs to be checked, typeOfAccident is dropdown
     typeOfAccident: get("type_of_accident", "type_of_accident"),
     // typeOfAccident: "Bicycle Accident",
-    whichService: get("which_service", "which_service"), // Dropdown
+    whichService: get("which_service_uberlyft", "which_service_uberlyft"), // Dropdown
     wasThisAnUberLyftAccident: getBoolean(
       "was_this_an_uberlyft_accident",
       "was_this_an_uberlyft_accident"
@@ -841,16 +844,16 @@ function mapHubspotToFilevine(
       "defendant_vehicle__year"
     ),
     defendant2VehicleMake: get(
-      "defendant_vehicle__make",
-      "defendant_vehicle__make"
+      "defendant_2_vehicle__make",
+      "defendant_2_vehicle__make"
     ),
     defendant2VehicleModel: get(
-      "defendant_vehicle__model",
-      "defendant_vehicle__model"
+      "defendant_2_vehicle__model",
+      "defendant_2_vehicle__model"
     ),
     defendant2VehicleYear: get(
-      "defendant_vehicle__year",
-      "defendant_vehicle__year"
+      "defendant_2_vehicle__year",
+      "defendant_2_vehicle__year"
     ),
     defendant2VehicleLicense: get(
       "defendant_2_vehicle__license_plate",
@@ -869,10 +872,144 @@ function mapHubspotToFilevine(
       "defendant_vehicle_repair_estimate",
       "defendant_vehicle_repair_estimate"
     ),
+    leadStatusNotes: get("lead_status_notes", "lead_status_notes"),
   }; // from defendant2VehicleRepairEst_1 to defendant2VehicleRepairEst
 
   return intake;
 }
 
-export { mapHubspotToFilevine, splitFullName };
+// function filevineContactPayload(name, contact) {
+//   const contactDetails = contact.properties;
+//   const trimmedName = name.trim();
+//   if (!trimmedName) {
+//     logger.warn("Empty name provided for Filevine contact creation");
+//     return null;
+//   }
+
+//   const { firstName, lastName } = splitFullName(trimmedName);
+
+//   // -----------------------------------
+//   // Filevine requires full name
+//   // -----------------------------------
+//   if (!firstName || !lastName) {
+//     logger.warn(
+//       `Cannot create Filevine contact without full name: "${trimmedName}"`
+//     );
+//     return null;
+//   }
+
+//   const payload = {
+//     firstName,
+//     lastName,
+//     // Phones: [
+//     //   {
+//     //     PhoneId: {
+//     //       Native: -2147483648,
+//     //       Partner: null,
+//     //     },
+//     //     Links: {},
+//     //     Number: contactDetails?.phone,
+//     //     RawNumber: contactDetails?.phone,
+//     //     // Extension: "string",
+//     //     Label: "Primary",
+//     //     IsSmsable: true,
+//     //     IsFaxable: true,
+//     //   },
+//     // ],
+//     Emails: [
+//       {
+//         EmailId: {
+//           Native: -2147483648, // use -2147483648 for new emails as per Filevine docs
+//           Partner: null,
+//         },
+//         Links: {}, // can be empty if no custom links
+//         Address: contactDetails?.email, // your actual email string
+//         Label: "Primary", // label can be Primary, Work, Home, etc.
+//       },
+//     ],
+//     // Addresses: [
+//     //   {
+//     //     AddressId: {
+//     //       Native: -2147483648,
+//     //       Partner: null,
+//     //     },
+//     //     Links: {},
+//     //     Line1: "string",
+//     //     Line2: "string",
+//     //     Line3: "string",
+//     //     City: contactDetails?.city,
+//     //     State: contactDetails?.state,
+//     //     PostalCode: contactDetails?.zip,
+//     //     Country: contactDetails?.country,
+//     //     Label: "string",
+//     //     FullAddress: contactDetails?.address,
+//     //   },
+//     // ],
+//   };
+
+//   return payload;
+// }
+function filevineContactPayload(name, contact) {
+  const contactDetails = contact.properties;
+  const trimmedName = name.trim();
+  if (!trimmedName) return null;
+
+  const { firstName, lastName } = splitFullName(trimmedName);
+  if (!firstName || !lastName) return null;
+
+  return {
+    FirstName: firstName,
+    LastName: lastName,
+
+    PersonTypes: ["Person"],
+
+    Phones: contactDetails?.phone
+      ? [
+          {
+            PhoneId: {
+              Native: -2147483648,
+              Partner: null,
+            },
+            Number: contactDetails.phone,
+            RawNumber: contactDetails.phone,
+            Label: "Primary",
+            IsSmsable: true,
+            IsFaxable: false,
+          },
+        ]
+      : [],
+
+    Emails: contactDetails?.email
+      ? [
+          {
+            EmailId: {
+              Native: -2147483648,
+              Partner: null,
+            },
+            Address: contactDetails.email,
+            Label: "Primary",
+          },
+        ]
+      : [],
+
+    Addresses: contactDetails?.address
+      ? [
+          {
+            AddressId: {
+              Native: -2147483648,
+              Partner: null,
+            },
+            Line1: contactDetails.address,
+            City: contactDetails?.city ?? null,
+            State: contactDetails?.state ?? null,
+            PostalCode: contactDetails?.zip ?? null,
+            Country: contactDetails?.country ?? null,
+            Label: "Primary",
+          },
+        ]
+      : [],
+  };
+}
+
+export { mapHubspotToFilevine, splitFullName, filevineContactPayload };
 ("");

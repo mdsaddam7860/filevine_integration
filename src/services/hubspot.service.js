@@ -209,6 +209,8 @@ async function fetchHubspotDeal(dealId, properties = []) {
       "defendant_incident_notes",
       "incident_description",
       "citation",
+      "which_service_uberlyft",
+      "lead_status_notes",
       // "citation_issued_to_whom",
       // "_accident",  // Check if this is field exists in hubspot deal
       "internal_file_number",
@@ -321,6 +323,9 @@ async function fetchHubspotDeal(dealId, properties = []) {
 async function getHubspotContact(contactId) {
   // All properties extracted from your cURL call
   const properties = [
+    "zip",
+    "phone",
+    "address",
     "firstname",
     "lastname",
     "email",
