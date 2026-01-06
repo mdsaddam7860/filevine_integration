@@ -69,37 +69,38 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
     let whoIsTheWorkerSCompensati = null;
     let passengerContactInformation = null;
     let witnessEs_1 = null;
-    // citationIssuedTo = await searchContactByNameInFV(
-    //   getDeal.properties?.citation_issued_to
-    // );
-
-    // if (!citationIssuedTo && getDeal.properties?.citation_issued_to) {
-    // Create payload
-    const payload = filevineContactPayload(
-      getDeal.properties?.citation_issued_to,
-      contact
+    citationIssuedTo = await searchContactByNameInFV(
+      getDeal.properties?.citation_issued_to
     );
-    // create contact in filevine
 
-    // await hubspotExecutor(
-    //   () => hubspotClient.crm.contacts.basicApi.update(contactId, payload),
-    //   { contactId }
-    // );
-    await filevineExecutor(
-      () => (citationIssuedTo = createContactInFilevinUsingName(payload)),
-      { payload }
-    );
-    citationIssuedTo = await createContactInFilevinUsingName(payload);
+    /*
+    if (!citationIssuedTo && getDeal.properties?.citation_issued_to) {
+      // Create payload
+      const payload = filevineContactPayload(
+        getDeal.properties?.citation_issued_to,
+        contact
+      );
+      // create contact in filevine
+
+      // await hubspotExecutor(
+      //   () => hubspotClient.crm.contacts.basicApi.update(contactId, payload),
+      //   { contactId }
+      // );
+      await filevineExecutor(
+        () => (citationIssuedTo = createContactInFilevinUsingName(payload)),
+        { payload }
+      );
+      // citationIssuedTo = await createContactInFilevinUsingName(payload);
+    }
     logger.info(
       `citation_issued_to: ${JSON.stringify(citationIssuedTo, null, 2)}`
     );
-    // }
 
     logger.info(
       `citation_issued_to: ${getDeal.properties?.citation_issued_to}`
     );
+    */
 
-    /*
     if (getDeal) {
       citationIssuedTo = await searchContactByNameInFV(
         getDeal.properties?.citation_issued_to
@@ -112,7 +113,10 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
           contact
         );
         // create contact in filevine
-        citationIssuedTo = await createContactInFilevinUsingName(payload);
+        await filevineExecutor(
+          () => (citationIssuedTo = createContactInFilevinUsingName(payload)),
+          { payload }
+        );
       }
 
       logger.info(
@@ -131,7 +135,11 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
         );
 
         // create contact in filevine
-        hospitalname = await createContactInFilevinUsingName(payload);
+        await filevineExecutor(
+          () => (hospitalname = createContactInFilevinUsingName(payload)),
+          { payload }
+        );
+        // hospitalname = await createContactInFilevinUsingName(payload);
       }
 
       logger.info(`hospital_name: ${getDeal.properties?.hospital_name}`);
@@ -150,8 +158,11 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
         );
 
         // create contact in filevine
-        ambulanceCompanyInformation = await createContactInFilevinUsingName(
-          payload
+        await filevineExecutor(
+          () =>
+            (ambulanceCompanyInformation =
+              createContactInFilevinUsingName(payload)),
+          { payload }
         );
       }
 
@@ -169,15 +180,18 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
         );
 
         // create contact in filevine
-        nameOfProviderSAddPhone = await createContactInFilevinUsingName(
-          payload
+        await filevineExecutor(
+          () =>
+            (nameOfProviderSAddPhone =
+              createContactInFilevinUsingName(payload)),
+          { payload }
         );
       }
 
       logger.info(
         `nameOfProviderSAddPhone: ${getDeal.properties?.name_of_providers}`
       );
-
+      // TODO: Add filevineExecutor From here
       bodyShop = await searchContactByNameInFV(
         getDeal.properties?.body_shop_type
       );
@@ -503,7 +517,6 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       //   )}`
       // );
     }
-    */
 
     // logger.info(`dealId: ${dealId}`);
     // logger.info(`✅ getDeal: ${JSON.stringify(getDeal)}`); // Tested and working fine

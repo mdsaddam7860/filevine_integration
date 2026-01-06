@@ -229,29 +229,6 @@ async function createContactInFilevinUsingName(body) {
       return null;
     }
 
-    // const trimmedName = name.trim();
-    // if (!trimmedName) {
-    //   logger.warn("Empty name provided for Filevine contact creation");
-    //   return null;
-    // }
-
-    // const { firstName, lastName } = splitFullName(trimmedName);
-
-    // // -----------------------------------
-    // // Filevine requires full name
-    // // -----------------------------------
-    // if (!firstName || !lastName) {
-    //   logger.warn(
-    //     `Cannot create Filevine contact without full name: "${trimmedName}"`
-    //   );
-    //   return null;
-    // }
-
-    // const body = {
-    //   firstName,
-    //   lastName,
-    // };
-
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
 
     if (!res?.data) {

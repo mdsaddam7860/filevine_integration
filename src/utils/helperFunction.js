@@ -377,32 +377,29 @@ let fvContact = {
 };
 
 function mapHubspotToFilevine(
-  contact,
+  contact = {},
   deal = {},
-  citationIssuedTo = null,
-  hospitalname = null,
-  ambulanceCompanyInformation = null,
-  nameOfProviderSAddPhone = null,
-  bodyShop = null,
-  staffMemberSendingPDLetter = null,
-  callercontactfile = null,
-  personperformingintake = null,
-  spouse = null,
-  defendantSVehicleRegistered = null,
-  defendant2DriverContactCar = null,
-  defendant2VehicleRegistered = null,
-  defendantDriverContactCard = null,
-  clientSVehicleRegisteredOw = null,
-  attorneySNameAndContactP = null,
-  whoIsTheWorkerSCompensati = null,
-  passengerContactInformation = null,
-  witnessEs_1 = null
+  citationIssuedTo = {},
+  hospitalname = {},
+  ambulanceCompanyInformation = {},
+  nameOfProviderSAddPhone = {},
+  bodyShop = {},
+  staffMemberSendingPDLetter = {},
+  callercontactfile = {},
+  personperformingintake = {},
+  spouse = {},
+  defendantSVehicleRegistered = {},
+  defendant2DriverContactCar = {},
+  defendant2VehicleRegistered = {},
+  defendantDriverContactCard = {},
+  clientSVehicleRegisteredOw = {},
+  attorneySNameAndContactP = {},
+  whoIsTheWorkerSCompensati = {},
+  passengerContactInformation = {},
+  witnessEs_1 = {}
 ) {
-  if (!contact || !contact.properties)
-    throw new Error("Invalid HubSpot contact");
-
-  const citationId = citationIssuedTo?.personId.native || null;
-  const hospitalId = hospitalname?.personId.native || null;
+  const citationId = citationIssuedTo?.personId?.native || null;
+  const hospitalId = hospitalname?.personId?.native || null;
   const ambulanceId = ambulanceCompanyInformation?.personId?.native || null;
   const nameOfProvidersId = nameOfProviderSAddPhone?.personId?.native || null;
   const bodyShopId = bodyShop?.personId?.native || null;
