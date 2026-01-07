@@ -176,29 +176,65 @@ async function createContactInFilevine(contact, deal) {
     const body = {
       firstName: contactDetails.firstname,
       lastName: contactDetails.lastname,
-      Emails: [
-        {
-          EmailId: {
-            Native: -2147483648, // use -2147483648 for new emails as per Filevine docs
-            Partner: null,
-          },
-          Links: {}, // can be empty if no custom links
-          Address: contactDetails.email, // your actual email string
-          Label: "Primary", // label can be Primary, Work, Home, etc.
-        },
-      ],
-      // whoIsTheWorkerSCompensati: get(
-      //   "who_is_the_workers_compensation_attorney",
-      //   "who_is_the_workers_compensation_attorney"
-      // ),
-      // citationIssuedToWhom: get(
-      //   "citation_issued_to_whom",
-      //   "citation_issued_to_whom"
-      // ),
-      // attorneySNameAndContactP: get(
-      //   "attorneys_name_and_contact",
-      //   "attorneys_name_and_contact"
-      // ),
+
+      PersonTypes: ["Person"],
+
+      Phones: contactDetails?.phone
+        ? [
+            {
+              PhoneId: {
+                Native: -2147483648,
+                Partner: null,
+              },
+              Number: contactDetails.phone,
+              RawNumber: contactDetails.phone,
+              Label: "Primary",
+              IsSmsable: true,
+              IsFaxable: false,
+            },
+          ]
+        : [],
+
+      Emails: contactDetails?.email
+        ? [
+            {
+              EmailId: {
+                Native: -2147483648,
+                Partner: null,
+              },
+              Address: contactDetails.email,
+              Label: "Primary",
+            },
+          ]
+        : [],
+
+      Addresses: contactDetails?.address
+        ? [
+            {
+              AddressId: {
+                Native: -2147483648,
+                Partner: null,
+              },
+              Line1: contactDetails.address,
+              City: contactDetails?.city ?? null,
+              State: contactDetails?.state ?? null,
+              PostalCode: contactDetails?.zip ?? null,
+              Country: contactDetails?.country ?? null,
+              Label: "Primary",
+            },
+          ]
+        : [],
+      // Emails: [
+      //   {
+      //     EmailId: {
+      //       Native: -2147483648, // use -2147483648 for new emails as per Filevine docs
+      //       Partner: null,
+      //     },
+      //     Links: {}, // can be empty if no custom links
+      //     Address: contactDetails.email, // your actual email string
+      //     Label: "Primary", // label can be Primary, Work, Home, etc.
+      //   },
+      // ],
     };
 
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
