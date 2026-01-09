@@ -533,37 +533,47 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
 
     logger.info(`contact source id: ${sourceId}`);
 
-    // if (sourceId && projectId) { // TODO: check this
-    //   // search filevine contact based on sourceid in hubspot contact
-    //   filevineContact = await searchContactbyIDInFilevine(sourceId);
-    //   filevinePersonID = filevineContact?.personId?.native || null;
-    //   if (filevineContact) {
-    //     logger.info(`existing Conact in filevine : ${sourceId}`);
-    //   }
-    //   // logger.info(`search contact in filevine: ${filevineContact}`);
-    // } else {
-    // TODO : post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
-    filevineContact = await createContactInFilevine(contact, getDeal);
-    logger.info(
-      `Created Contact in Filevine: ${JSON.stringify(filevineContact, null, 2)}`
-    );
-
-    if (!filevineContact) {
-      logger.error(
-        `❌ Filevine contact creation failed for HubSpot contact ID: ${contact.id}`
-      );
-      // continue; // move to next contact
-    }
-
-    filevinePersonID = filevineContact?.personId?.native || null;
-
-    if (filevinePersonID) {
-      hubspotContact = await updateContactInHubspot(contact, filevinePersonID);
+    if (sourceId && projectId) {
+      // TODO: check this
+      // search filevine contact based on sourceid in hubspot contact
+      filevineContact = await searchContactbyIDInFilevine(sourceId);
+      filevinePersonID = filevineContact?.personId?.native || null;
+      if (filevineContact) {
+        logger.info(`existing Conact in filevine : ${sourceId}`);
+      }
+      // logger.info(`search contact in filevine: ${filevineContact}`);
+    } else {
+      // TODO : post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
+      filevineContact = await createContactInFilevine(contact, getDeal);
       logger.info(
-        `Updated sourceId in Hubspot Contact: ${JSON.stringify(hubspotContact)}`
+        `Created Contact in Filevine: ${JSON.stringify(
+          filevineContact,
+          null,
+          2
+        )}`
       );
-    }
-    // } // TODO : end of else
+
+      if (!filevineContact) {
+        logger.error(
+          `❌ Filevine contact creation failed for HubSpot contact ID: ${contact.id}`
+        );
+        // continue; // move to next contact
+      }
+
+      filevinePersonID = filevineContact?.personId?.native || null;
+
+      if (filevinePersonID) {
+        hubspotContact = await updateContactInHubspot(
+          contact,
+          filevinePersonID
+        );
+        logger.info(
+          `Updated sourceId in Hubspot Contact: ${JSON.stringify(
+            hubspotContact
+          )}`
+        );
+      }
+    } // TODO : end of else
 
     // ---------------------------------------
 
@@ -573,22 +583,23 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
     projectId = contact.properties?.projectsourceid || null;
     // let project = contact.properties?.projectsourceid || null;
 
-    // if (!projectId) { //TODO Anchor
-    // Create project contact in Filevine
-    const project = await createProjectInFilevine(contact, filevinePersonID);
-    projectId = project.projectId.native;
-    logger.info(`project created: ${JSON.stringify(project)}`);
+    if (!projectId) {
+      //TODO Anchor
+      // Create project contact in Filevine
+      const project = await createProjectInFilevine(contact, filevinePersonID);
+      projectId = project.projectId.native;
+      logger.info(`project created: ${JSON.stringify(project)}`);
 
-    const update_contact_sourceId = await updateHubSpotContactProjectId(
-      contact.id,
-      project.projectId.native
-    );
-    logger.info(
-      `projectId in Hubspot Contact updated: ${JSON.stringify(
-        update_contact_sourceId
-      )}`
-    );
-    // } // TODO Anchor End
+      const update_contact_sourceId = await updateHubSpotContactProjectId(
+        contact.id,
+        project.projectId.native
+      );
+      logger.info(
+        `projectId in Hubspot Contact updated: ${JSON.stringify(
+          update_contact_sourceId
+        )}`
+      );
+    } // TODO Anchor End
 
     // throw new Error("stop");
 
@@ -625,7 +636,7 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
       projectId,
       filevinePayload
     );
-    logger.info(`➡✅ updatedIntake: ${JSON.stringify(updatedIntake)}`);
+    logger.info(`✅ updatedIntake: ${JSON.stringify(updatedIntake)}`);
 
     // TODO : remove this in production
 
