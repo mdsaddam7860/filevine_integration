@@ -177,17 +177,28 @@ async function createContactInFilevine(contact, deal) {
       firstName: contactDetails.firstname,
       lastName: contactDetails.lastname,
 
+      // TODO : Add Extra Mapping here
+      JobTitle: contactDetails?.jobtitle,
+      Department: contactDetails?.department,
+      BirthDate: contactDetails.client_dob,
+      Salutation: contactDetails.salutation,
+      DriversLicenseNumber: contactDetails.drivers_license,
+      Notes: contactDetails.comments_about_this_contact,
+      MaritalStatus: contactDetails.marital_status_,
+      Gender: contactDetails.gender,
+      // SocialSecurityNumber: contactDetails.social_security_number,
+
       PersonTypes: ["Person"],
 
-      Phones: contactDetails?.phone
+      Phones: contactDetails?.client_phone
         ? [
             {
               PhoneId: {
                 Native: -2147483648,
                 Partner: null,
               },
-              Number: contactDetails.phone,
-              RawNumber: contactDetails.phone,
+              Number: contactDetails.client_phone,
+              RawNumber: contactDetails.client_phone,
               Label: "Primary",
               IsSmsable: true,
               IsFaxable: false,
@@ -195,14 +206,14 @@ async function createContactInFilevine(contact, deal) {
           ]
         : [],
 
-      Emails: contactDetails?.email
+      Emails: contactDetails?.client_email
         ? [
             {
               EmailId: {
                 Native: -2147483648,
                 Partner: null,
               },
-              Address: contactDetails.email,
+              Address: contactDetails.client_email,
               Label: "Primary",
             },
           ]
@@ -218,36 +229,22 @@ async function createContactInFilevine(contact, deal) {
               Line1: contactDetails.address,
               City: contactDetails?.city ?? null,
               State: contactDetails?.state ?? null,
-              PostalCode: contactDetails?.zip ?? null,
-              Country: contactDetails?.country ?? null,
+              PostalCode: contactDetails?.zip_code ?? null,
+              // Country: contactDetails?.country ?? null,
               Label: "Primary",
             },
           ]
         : [],
-      // Emails: [
-      //   {
-      //     EmailId: {
-      //       Native: -2147483648, // use -2147483648 for new emails as per Filevine docs
-      //       Partner: null,
-      //     },
-      //     Links: {}, // can be empty if no custom links
-      //     Address: contactDetails.email, // your actual email string
-      //     Label: "Primary", // label can be Primary, Work, Home, etc.
-      //   },
-      // ],
+
+      // Not Present In FV
+      // spouse: contactDetails.spouse,
     };
+
+    logger.info(`createContactInFilevine: ${JSON.stringify(body, null, 2)}`);
 
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
 
-    // if (res?.data?.personId?.native) {
-    //   logger.info(`Contact created in Filevine: ${res.data.personId.native}`);
-    // } else {
-    //   logger.warn("Filevine contact created, but no personId returned");
-    // }
-
     return res?.data;
-    // const filter = `id=${id}`
-    // const getContact = await AxiosFilevine.get("fv-app/v2/Contacts");
   } catch (error) {
     logger.error("Error in searching contact by ID in Filevine:", error);
     return null;

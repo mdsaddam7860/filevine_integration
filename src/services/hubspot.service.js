@@ -323,6 +323,16 @@ async function fetchHubspotDeal(dealId, properties = []) {
 async function getHubspotContact(contactId) {
   // All properties extracted from your cURL call
   const properties = [
+    "country",
+    "gender",
+    "comments_about_this_contact",
+    "marital_status_",
+    "social_security_number",
+    "emergency_contact",
+    "salutation",
+    "zip_code",
+    "jobtitle",
+    "department",
     "zip",
     "phone",
     "address",
