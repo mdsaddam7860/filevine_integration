@@ -14,6 +14,7 @@ import {
   getIntakeByProjectID,
   searchContactByNameInFV,
   createContactInFilevinUsingName,
+  updateContactInFilevine,
 } from "./services/filevine.service.js";
 import { hubspotToFilevine } from "./controllers/hubspotToFilevine.controller.js";
 import {
@@ -35,6 +36,7 @@ import { filevineTokenManager } from "./services/auth/tokenManager.js";
 import { filevineExecutor } from "./utils/executor.js";
 
 export {
+  updateContactInFilevine,
   filevineExecutor,
   filevineTokenManager,
   filevineContactPayload,

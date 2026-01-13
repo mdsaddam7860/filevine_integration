@@ -21,6 +21,7 @@ import {
   createContactInFilevinUsingName,
   filevineContactPayload,
   filevineTokenManager,
+  updateContactInFilevine,
 } from "./index.js";
 
 const PORT = process.env.PORT || 5000;
@@ -533,38 +534,59 @@ it has this contact associated - https://app-na2.hubspot.com/contacts/242315905/
 
     logger.info(`contact source id: ${sourceId}`);
 
-    // if (sourceId && projectId) {
-    //   // TODO: check this
-    //   // search filevine contact based on sourceid in hubspot contact
-    //   filevineContact = await searchContactbyIDInFilevine(sourceId);
-    //   filevinePersonID = filevineContact?.personId?.native || null;
-    //   if (filevineContact) {
-    //     logger.info(`existing Conact in filevine : ${sourceId}`);
-    //   }
-    //   // logger.info(`search contact in filevine: ${filevineContact}`);
-    // } else {
-    // TODO : post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
-    filevineContact = await createContactInFilevine(contact, getDeal);
-    logger.info(
-      `Created Contact in Filevine: ${JSON.stringify(filevineContact, null, 2)}`
-    );
-
-    if (!filevineContact) {
-      logger.error(
-        `❌ Filevine contact creation failed for HubSpot contact ID: ${contact.id}`
-      );
-      // continue; // move to next contact
-    }
-
-    filevinePersonID = filevineContact?.personId?.native || null;
-
-    if (filevinePersonID) {
-      hubspotContact = await updateContactInHubspot(contact, filevinePersonID);
+    if (sourceId && projectId) {
+      // TODO: check this
+      // search filevine contact based on sourceid in hubspot contact
+      filevineContact = await searchContactbyIDInFilevine(sourceId);
+      filevinePersonID = filevineContact?.personId?.native || null;
+      if (filevineContact) {
+        logger.info(`existing Conact in filevine : ${sourceId}`);
+      }
+      // logger.info(`search contact in filevine: ${filevineContact}`);
+    } else {
+      // TODO : post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact
+      filevineContact = await createContactInFilevine(contact, getDeal);
       logger.info(
-        `Updated sourceId in Hubspot Contact: ${JSON.stringify(hubspotContact)}`
+        `Created Contact in Filevine: ${JSON.stringify(
+          filevineContact,
+          null,
+          2
+        )}`
+      );
+
+      if (!filevineContact) {
+        logger.error(
+          `❌ Filevine contact creation failed for HubSpot contact ID: ${contact.id}`
+        );
+        // continue; // move to next contact
+      }
+
+      filevinePersonID = filevineContact?.personId?.native || null;
+
+      if (filevinePersonID) {
+        hubspotContact = await updateContactInHubspot(
+          contact,
+          filevinePersonID
+        );
+        logger.info(
+          `Updated sourceId in Hubspot Contact: ${JSON.stringify(
+            hubspotContact
+          )}`
+        );
+      }
+    } // TODO : end of else
+
+    // update contact in FV here
+    if (filevineContact) {
+      const updateContact = await updateContactInFilevine(
+        filevineContact.personId.native,
+        contact
+      );
+
+      logger.info(
+        `Updated Contact in Filevine: ${JSON.stringify(updateContact, null, 2)}`
       );
     }
-    // } // TODO : end of else
 
     // ---------------------------------------
 

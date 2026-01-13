@@ -176,16 +176,16 @@ async function createContactInFilevine(contact, deal) {
     const body = {
       firstName: contactDetails.firstname,
       lastName: contactDetails.lastname,
-
-      // TODO : Add Extra Mapping here
       JobTitle: contactDetails?.jobtitle,
       Department: contactDetails?.department,
+
       BirthDate: contactDetails.client_dob,
       Salutation: contactDetails.salutation,
       DriversLicenseNumber: contactDetails.drivers_license,
       Notes: contactDetails.comments_about_this_contact,
       MaritalStatus: contactDetails.marital_status_,
       Gender: contactDetails.gender,
+      FromCompany: "Test",
       // SocialSecurityNumber: contactDetails.social_security_number,
 
       PersonTypes: ["Person"],
@@ -246,7 +246,104 @@ async function createContactInFilevine(contact, deal) {
 
     return res?.data;
   } catch (error) {
-    logger.error("Error in searching contact by ID in Filevine:", error);
+    logger.error("Error in creating contact in Filevine:", error);
+    return null;
+  }
+}
+async function updateContactInFilevine(contactId, contact) {
+  try {
+    const token = await filevineTokenManager.getToken();
+    if (!contact || !token) {
+      return null;
+    }
+
+    const contactDetails = contact.properties;
+
+    const body = {
+      firstName: contactDetails.firstname,
+      lastName: contactDetails.lastname,
+      JobTitle: contactDetails?.jobtitle,
+      Department: contactDetails?.department,
+
+      // initials: contactDetails?.initials,
+      // SocialSecurityNumber: contactDetails?.social_security_number,
+      // ClientHealthInsurancePlan: contactDetails?.client_health_ins_plan,
+      // HealthInsuranceID: contactDetails?.health_ins_id,
+      // Street: contactDetails?.address,
+      // SpouseName: contactDetails?.spouse,
+      // EmergencyContact: contactDetails?.emergency_contact,
+
+      BirthDate: contactDetails.client_dob,
+      Salutation: contactDetails.salutation,
+      DriversLicenseNumber: contactDetails.drivers_license,
+      Notes: contactDetails.comments_about_this_contact,
+      MaritalStatus: contactDetails.marital_status_,
+      Gender: contactDetails.gender,
+      FromCompany: "Test",
+      // SocialSecurityNumber: contactDetails.social_security_number,
+
+      PersonTypes: ["Person"],
+
+      Phones: contactDetails?.client_phone
+        ? [
+            {
+              PhoneId: {
+                Native: -2147483648,
+                Partner: null,
+              },
+              Number: contactDetails.client_phone,
+              RawNumber: contactDetails.client_phone,
+              Label: "Primary",
+              IsSmsable: true,
+              IsFaxable: false,
+            },
+          ]
+        : [],
+
+      Emails: contactDetails?.client_email
+        ? [
+            {
+              EmailId: {
+                Native: -2147483648,
+                Partner: null,
+              },
+              Address: contactDetails.client_email,
+              Label: "Primary",
+            },
+          ]
+        : [],
+
+      Addresses: contactDetails?.address
+        ? [
+            {
+              AddressId: {
+                Native: -2147483648,
+                Partner: null,
+              },
+              Line1: contactDetails.address,
+              City: contactDetails?.city ?? null,
+              State: contactDetails?.state ?? null,
+              PostalCode: contactDetails?.zip_code ?? null,
+              // Country: contactDetails?.country ?? null,
+              Label: "Primary",
+            },
+          ]
+        : [],
+
+      // Not Present In FV
+      // spouse: contactDetails.spouse,
+    };
+
+    logger.info(`updateContactInFilevine: ${JSON.stringify(body, null, 2)}`);
+
+    const res = await AxiosFilevineAuth(token).patch(
+      `fv-app/v2/Contacts/${contactId}`,
+      body
+    );
+
+    return res?.data;
+  } catch (error) {
+    logger.error("Error in updating contact by ID in Filevine:", error);
     return null;
   }
 }
@@ -490,4 +587,5 @@ export {
   findFilevineContact,
   searchContactByNameInFV,
   createContactInFilevinUsingName,
+  updateContactInFilevine,
 };
