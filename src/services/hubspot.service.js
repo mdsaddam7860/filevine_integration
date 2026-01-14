@@ -118,7 +118,7 @@ async function getDealFromHubspot({
       let retries = 0;
 
       if (!lastSyncDate) {
-        const oneHourInMs = 90 * 60 * 1000;
+        const oneHourInMs = 30 * 60 * 1000;
         lastSyncDate = new Date().toISOString();
         lastSyncDate = new Date(lastSyncDate).getTime() - oneHourInMs;
       }
