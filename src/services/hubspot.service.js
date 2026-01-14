@@ -1,4 +1,9 @@
-import { hubspotAxios, logger } from "../index.js";
+import {
+  hubspotAxios,
+  logger,
+  contactProperties,
+  dealProperties,
+} from "../index.js";
 import axios from "axios";
 
 /**
@@ -18,34 +23,39 @@ function delay(ms) {
  * @param {number} options.retryDelay Base retry delay in ms
  */
 async function getContactFromHubspot({
+  lastSyncDate = null,
   limit = 100,
   maxRetries = 3,
   retryDelay = 1000,
 } = {}) {
   let allContacts = [];
   let after = undefined; // pagination cursor
-  // TODO remove after testing
-
-  // const requestBody = {
-  //   properties: ["email", "firstname", "lastname", "sourceid"],
-  //   limit,
-  //   after,
-  // };
-
-  // // Use the search endpoint for filtering
-  // const response = await hubspotAxios.get("contacts", requestBody);
-
-  // return response.data?.results || [];
-
-  // TODO remove after testing
 
   do {
     let retries = 0;
 
+    if (!lastSyncDate) {
+      const oneHourInMs = 60 * 60 * 1000;
+      lastSyncDate = new Date().toISOString();
+      lastSyncDate = new Date(lastSyncDate).getTime() - oneHourInMs;
+    }
+
+    const properties = contactProperties();
+
     while (retries <= maxRetries) {
       try {
-        // filterGroups: filters.length ? [{ filters }] : [],
         const requestBody = {
+          filterGroups: [
+            {
+              filters: [
+                {
+                  propertyName: "hs_lastmodifieddate",
+                  operator: "GTE",
+                  value: lastSyncDate, // HubSpot expects string
+                },
+              ],
+            },
+          ],
           properties: [
             "email",
             "firstname",
@@ -67,7 +77,8 @@ async function getContactFromHubspot({
         allContacts.push(...contacts);
 
         // TODO remove after testing and add this to getContactFromHubspot
-        return allContacts; // TODO remove after
+        // return allContacts; // TODO remove after
+        logger.info(`✅ Fetched ${allContacts.length} contacts from HubSpot`);
 
         after = response.data?.paging?.next?.after; // next cursor
         break; // exit retry loop if successful
@@ -91,6 +102,85 @@ async function getContactFromHubspot({
 
   logger.info(`✅ Fetched ${allContacts.length} contacts from HubSpot`);
   return allContacts;
+}
+
+async function getDealFromHubspot({
+  lastSyncDate = null,
+  limit = 100,
+  maxRetries = 3,
+  retryDelay = 1000,
+} = {}) {
+  let allDeals = [];
+  let after = undefined; // pagination cursor
+
+  try {
+    do {
+      let retries = 0;
+
+      if (!lastSyncDate) {
+        const oneHourInMs = 90 * 60 * 1000;
+        lastSyncDate = new Date().toISOString();
+        lastSyncDate = new Date(lastSyncDate).getTime() - oneHourInMs;
+      }
+
+      const properties = dealProperties();
+
+      while (retries <= maxRetries) {
+        try {
+          const requestBody = {
+            filterGroups: [
+              {
+                filters: [
+                  {
+                    propertyName: "hs_lastmodifieddate",
+                    operator: "GTE",
+                    value: lastSyncDate, // HubSpot expects string
+                  },
+                ],
+              },
+            ],
+            properties,
+            limit,
+            after,
+          };
+
+          // Use the search endpoint for filtering
+          const response = await hubspotAxios.post("deals/search", requestBody);
+
+          const deals = response.data?.results || [];
+          allDeals.push(...deals);
+
+          // TODO remove after testing and add this to getContactFromHubspot
+          // return alldeals; // TODO remove after
+          // logger.info(`✅ Fetched ${allDeals.length} Deals from HubSpot`);
+
+          after = response.data?.paging?.next?.after; // next cursor
+          break; // exit retry loop if successful
+        } catch (error) {
+          retries++;
+          const status = error.response?.status;
+
+          if (status === 429 || (status >= 500 && status < 600)) {
+            const waitTime = retryDelay * retries;
+            logger.warn(
+              `Request failed with status ${status}. Retry ${retries}/${maxRetries} after ${waitTime}ms`
+            );
+            await delay(waitTime);
+          } else {
+            logger.error("❌ Error in getDealFromHubspot", error);
+            return allDeals;
+          }
+        }
+      }
+    } while (after);
+
+    // logger.info(`✅ Fetched ${allDeals.length} Deals from HubSpot`);
+    return allDeals;
+  } catch (error) {
+    logger.error("❌ Error in getDealFromHubspot", error);
+
+    return allDeals;
+  }
 }
 // ✅ Utility: removes undefined, null, or empty string values
 function cleanProps(obj) {
@@ -546,12 +636,37 @@ async function getDealIdsForContact(contactId) {
     return "";
   }
 }
+async function getContactIdsForDeal(dealId) {
+  try {
+    const response = await hubspotAxios.get(
+      `deals/${dealId}/associations/contacts`,
+      {}
+    );
+
+    // Extract deal IDs
+    // const dealId = response.data.results.map((item) => item.toObjectId);
+    const contactId = response.data.results[0].id;
+
+    // logger.info(
+    //   `Deal ID:, ${JSON.stringify(response.data.results[0], null, 2)}`
+    // );
+
+    logger.info(`Contact ID:, ${contactId}`);
+
+    return contactId || "";
+  } catch (error) {
+    logger.error("Error fetching deal IDs:", error.response?.data || error);
+    return "";
+  }
+}
 
 export {
+  getContactIdsForDeal,
   getContactFromHubspot,
   updateContactInHubspot,
   getHubspotContact,
   fetchHubspotDeal,
   updateHubSpotContactProjectId,
   getDealIdsForContact,
+  getDealFromHubspot,
 };

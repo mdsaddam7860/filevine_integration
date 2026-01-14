@@ -24,18 +24,28 @@ import {
   fetchHubspotDeal,
   updateHubSpotContactProjectId,
   getDealIdsForContact,
+  getDealFromHubspot,
+  getContactIdsForDeal,
 } from "./services/hubspot.service.js";
 
 import {
   mapHubspotToFilevine,
   splitFullName,
   filevineContactPayload,
+  getLastSyncDate,
+  updateLastSyncDate,
+  contactProperties,
+  dealProperties,
 } from "./utils/helperFunction.js";
 
 import { filevineTokenManager } from "./services/auth/tokenManager.js";
-import { filevineExecutor } from "./utils/executor.js";
+import { filevineExecutor, hubspotExecutor } from "./utils/executor.js";
 
 export {
+  getContactIdsForDeal,
+  getDealFromHubspot,
+  dealProperties,
+  hubspotExecutor,
   updateContactInFilevine,
   filevineExecutor,
   filevineTokenManager,
@@ -62,6 +72,9 @@ export {
   getDealIdsForContact,
   searchContactByNameInFV,
   createContactInFilevinUsingName,
+  getLastSyncDate,
+  updateLastSyncDate,
+  contactProperties,
 };
 
 /* Workflow

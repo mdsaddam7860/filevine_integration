@@ -334,7 +334,7 @@ async function updateContactInFilevine(contactId, contact) {
       // spouse: contactDetails.spouse,
     };
 
-    logger.info(`updateContactInFilevine: ${JSON.stringify(body, null, 2)}`);
+    // logger.info(`updateContactInFilevine: ${JSON.stringify(body, null, 2)}`);
 
     const res = await AxiosFilevineAuth(token).patch(
       `fv-app/v2/Contacts/${contactId}`,
