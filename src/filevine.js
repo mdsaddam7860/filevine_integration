@@ -1,9 +1,9 @@
-import "dotenv/config";
+// import "dotenv/config";
 
 import dotenv from "dotenv";
 import path from "path";
 dotenv.config({
-  path: path.resolve(process.cwd(), "../.env"),
+  path: path.resolve(process.cwd(), ".env"),
 });
 
 import { app } from "./app.js";

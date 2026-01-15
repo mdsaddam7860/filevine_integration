@@ -11,11 +11,11 @@ app.get("/run-manually", (req, res) => {
 
   setImmediate(async () => {
     try {
-      console.log("Manual trigger started");
+      logger.info("Manual trigger started");
       await hubspotToFilevine();
       console.log("Manual trigger completed");
     } catch (err) {
-      console.error("Manual trigger failed:", err);
+      logger.error("Manual trigger failed:", err);
     }
   });
 });
