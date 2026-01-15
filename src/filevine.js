@@ -14,13 +14,12 @@ import { startFilevinePolling } from "./schedulers/filevine.poller.js";
 // import { hubspotToFilevine } from "./controllers/hubspotToFilevine.controller.js";
 
 logger.info(`CWD: ${process.cwd()}`);
-logger.info(`NODE_ENV: ${process.env.NODE_ENV}`);
 logger.info(`HS : ${process.env.HUBSPOT_API_KEY}`);
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
-  logger.info(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port ${process.env.PORT}`);
 
   startFilevinePolling();
 });
