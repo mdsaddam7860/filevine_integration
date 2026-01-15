@@ -6,18 +6,28 @@ const app = express();
 app.get("/", (req, res) => {
   res.status(200).send("health is Good");
 });
-app.get("/run-manually", (req, res) => {
-  res.status(200).send("health is Good");
+// app.get("/run-manually", (req, res) => {
+//   res.status(200).send("health is Good");
 
-  setImmediate(async () => {
-    try {
-      logger.info("Manual trigger started");
-      await hubspotToFilevine();
-      console.log("Manual trigger completed");
-    } catch (err) {
-      logger.error("Manual trigger failed:", err);
-    }
-  });
+//   setImmediate(async () => {
+//     try {
+//       logger.info("Manual trigger started");
+//       await hubspotToFilevine();
+//       console.log("Manual trigger completed");
+//     } catch (err) {
+//       logger.error("Manual trigger failed:", err);
+//     }
+//   });
+// });
+
+app.get("/run-manually", async (req, res) => {
+  console.log("ROUTE HIT - before response");
+
+  await new Promise((r) => setTimeout(r, 1000));
+
+  console.log("AFTER 1s DELAY");
+
+  res.send("Triggered");
 });
 
 app.use(express.json());
