@@ -26,21 +26,26 @@ import {
 Query hubspot deal -> search associated contact -> search filevine contact based on sourceid in hubspot contact -> if source id is blank -> post contact in filevine and update contact in hubspot to store filevine id in sourceid field on contact, then create project contact in filevine -> Update deal in hubspot -> update intake under project
 
 */
+const toBool = (value) => value === "true";
 async function hubspotToFilevine() {
   try {
-    // const lastSyncDate = getLastSyncDate();
-    // Update only after successful full sync
-    // updateLastSyncDate(new Date());
-
-    // const getContact = await getContactFromHubspot({ lastSyncDate });
-    // logger.info(`Length of contact: ${getContact.length}`);
-
     const deals = await getDealFromHubspot();
     logger.info(`Length of Deals: ${deals.length}`);
 
     for (const getDeal of deals) {
       try {
         logger.info(` ➡️ deals: ${JSON.stringify(getDeal)}`);
+
+        const trigger_sync = toBool(
+          getDeal.properties.trigger_sync_to_filevine
+        );
+
+        logger.info(`trigger_sync: ${trigger_sync}`);
+
+        if (!trigger_sync) {
+          logger.warn(`Trigger is not True for deal: ${getDeal.id}`);
+          continue;
+        }
 
         const contactId = await getContactIdsForDeal(getDeal.id);
         if (!contactId) {

@@ -118,7 +118,7 @@ async function getDealFromHubspot({
       let retries = 0;
 
       if (!lastSyncDate) {
-        const oneHourInMs = 30 * 60 * 1000;
+        const oneHourInMs = 30 * 60 * 1000; // Delta 30 minutes
         lastSyncDate = new Date().toISOString();
         lastSyncDate = new Date(lastSyncDate).getTime() - oneHourInMs;
       }
@@ -134,7 +134,12 @@ async function getDealFromHubspot({
                   {
                     propertyName: "hs_lastmodifieddate",
                     operator: "GTE",
-                    value: lastSyncDate, // HubSpot expects string
+                    value: lastSyncDate,
+                  },
+                  {
+                    propertyName: "trigger_sync_to_filevine",
+                    operator: "EQ",
+                    value: "true",
                   },
                 ],
               },

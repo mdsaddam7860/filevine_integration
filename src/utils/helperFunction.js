@@ -1205,6 +1205,7 @@ function dealProperties() {
     "drivers_license",
     "client_health_ins_plan",
     "health_ins_id",
+    "trigger_sync_to_filevine",
     "is_this_a_burg_and_brock_case",
     "date_of_interview",
     "how_did_you_hear_about_us",
