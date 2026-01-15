@@ -26,6 +26,7 @@ import {
   getDealIdsForContact,
   getDealFromHubspot,
   getContactIdsForDeal,
+  updateDealInHubspot,
 } from "./services/hubspot.service.js";
 
 import {
@@ -42,6 +43,7 @@ import { filevineTokenManager } from "./services/auth/tokenManager.js";
 import { filevineExecutor, hubspotExecutor } from "./utils/executor.js";
 
 export {
+  updateDealInHubspot,
   getContactIdsForDeal,
   getDealFromHubspot,
   dealProperties,

@@ -7,9 +7,9 @@ import { logger } from "./index.js";
 dotenv.config({
   path: path.resolve(process.cwd(), "../.env"),
 });
+import { startFilevinePolling } from "./schedulers/filevine.poller.js";
 
 logger.info(`CWD: ${process.cwd()}`);
-import { startFilevinePolling } from "./schedulers/filevine.poller.js";
 
 const PORT = process.env.PORT || 5000;
 
