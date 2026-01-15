@@ -240,7 +240,7 @@ async function createContactInFilevine(contact, deal) {
       // spouse: contactDetails.spouse,
     };
 
-    logger.info(`createContactInFilevine: ${JSON.stringify(body, null, 2)}`);
+    // logger.info(`createContactInFilevine: ${JSON.stringify(body, null, 2)}`);
 
     const res = await AxiosFilevineAuth(token).post("fv-app/v2/Contacts", body);
 
