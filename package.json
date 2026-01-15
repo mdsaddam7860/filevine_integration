@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "filevine integration from filevine to hubspot",
-  "main": "filevine.js",
+  "main": "src/filevine.js",
   "scripts": {
-    "start": "node filevine.js",
+    "start": "node src/filevine.js",
     "test": "dev"
   },
   "author": "Mohammad Saddam",
