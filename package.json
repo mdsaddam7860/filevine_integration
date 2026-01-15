@@ -5,7 +5,7 @@
   "description": "filevine integration from filevine to hubspot",
   "main": "filevine.js",
   "scripts": {
-    "start": "node src/filevine.js",
+    "start": "node filevine.js",
     "test": "dev"
   },
   "author": "Mohammad Saddam",
