@@ -3,10 +3,10 @@ import { hubspotToFilevine } from "./controllers/hubspotToFilevine.controller.js
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.status(200).send("health is Good");
-});
-app.get("/run-manually", async (req, res) => {
+// app.get("/", (req, res) => {
+//   res.status(200).send("health is Good");
+// });
+app.get("/", async (req, res) => {
   try {
     console.log("Manual Trigger is started");
     await hubspotToFilevine();
