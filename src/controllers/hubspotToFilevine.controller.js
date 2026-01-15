@@ -576,11 +576,7 @@ async function hubspotToFilevine() {
             { name: "createContactInFilevine" }
           );
           logger.info(
-            `Created Contact in Filevine: ${JSON.stringify(
-              filevineContact,
-              null,
-              2
-            )}`
+            `Created Contact in Filevine: ${JSON.stringify(filevineContact)}`
           );
 
           if (!filevineContact) {
