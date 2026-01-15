@@ -1353,4 +1353,5 @@ export {
   filevineContactPayload,
   getLastSyncDate,
   updateLastSyncDate,
+  cleanProps,
 };

@@ -33,6 +33,7 @@ async function hubspotToFilevine() {
     logger.info(`Length of Deals: ${deals.length}`);
 
     for (const getDeal of deals) {
+      let triggerSynced = false;
       try {
         logger.info(` ➡️ deals: ${JSON.stringify(getDeal)}`);
 
@@ -644,6 +645,7 @@ async function hubspotToFilevine() {
             () => updateDealInHubspot(getDeal?.id, project?.projectUrl),
             { name: "updateDealInHubspot" }
           );
+          triggerSynced = true;
           logger.info(`Updated Deal in Hubspot: ${JSON.stringify(updateDeal)}`);
         }
 
@@ -680,6 +682,15 @@ async function hubspotToFilevine() {
         );
 
         logger.info(`✅ updatedIntake: ${JSON.stringify(updatedIntake)}`);
+
+        if (!triggerSynced) {
+          // Update trigger here
+          const updateDeal = await hubspotExecutor(
+            () => updateDealInHubspot(getDeal?.id),
+            { name: "updateDealInHubspot" }
+          );
+          logger.info(`Updated Deal in Hubspot: ${JSON.stringify(updateDeal)}`);
+        }
       } catch (error) {
         logger.error("Error in hubspotToFilevine loop", error);
       }

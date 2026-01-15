@@ -370,17 +370,18 @@ async function getContactIdsForDeal(dealId) {
   }
 }
 
-async function updateDealInHubspot(dealId, filevine_url) {
+async function updateDealInHubspot(dealId, filevine_url = null) {
   try {
-    if (!dealId || !filevine_url) {
-      logger.error("Missing dealId, filevine_url");
+    if (!dealId) {
+      logger.error("Missing dealId");
       return {};
     }
 
     const payload = {
-      properties: {
-        filevine_url: filevine_url,
-      },
+      properties: cleanProps({
+        filevine_url: filevine_url ? filevine_url : null,
+        trigger_sync_to_filevine: false,
+      }),
     };
 
     const response = await hubspotAxios.patch(`deals/${dealId}`, payload);

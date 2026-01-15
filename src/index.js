@@ -37,12 +37,14 @@ import {
   updateLastSyncDate,
   contactProperties,
   dealProperties,
+  cleanProps,
 } from "./utils/helperFunction.js";
 
 import { filevineTokenManager } from "./services/auth/tokenManager.js";
 import { filevineExecutor, hubspotExecutor } from "./utils/executor.js";
 
 export {
+  cleanProps,
   updateDealInHubspot,
   getContactIdsForDeal,
   getDealFromHubspot,
