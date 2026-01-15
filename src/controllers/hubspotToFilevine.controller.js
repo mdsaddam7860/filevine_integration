@@ -2,22 +2,13 @@ import {
   filevineExecutor,
   hubspotExecutor,
   logger,
-  app,
-  AxiosFilevine,
-  hubspotAxios,
-  AxiosFilevineAuth,
-  getTokenFromFilevine,
-  getContactFromHubspot,
   searchContactbyIDInFilevine,
   createContactInFilevine,
   updateContactInHubspot,
   createProjectInFilevine,
-  getIntakeByProjectID,
   updateIntakeUnderProject,
   mapHubspotToFilevine,
   updateHubSpotContactProjectId,
-  getDealIdsForContact,
-  fetchHubspotDeal,
   searchContactByNameInFV,
   createContactInFilevinUsingName,
   updateContactInFilevine,
@@ -557,7 +548,6 @@ async function hubspotToFilevine() {
 
         let filevineContact = null;
         let hubspotContact = null;
-        // let projectId = null;
         let filevinePersonID = null;
 
         let sourceId = contact.properties?.sourceid || null;
@@ -619,11 +609,7 @@ async function hubspotToFilevine() {
           );
 
           logger.info(
-            `Updated Contact in Filevine: ${JSON.stringify(
-              updateContact,
-              null,
-              2
-            )}`
+            `Updated Contact in Filevine: ${JSON.stringify(updateContact)}`
           );
         }
 
